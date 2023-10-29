@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugGpu|x64">
+      <Configuration>DebugGpu</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>02_scene_intersection</RootNamespace>
+    <ProjectName>main</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGpu|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='DebugGpu|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\dist\bin\Debug\</OutDir>
+    <IntDir>obj\x64\Debug\main\</IntDir>
+    <TargetName>main_debug</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\dist\bin\Release\</OutDir>
+    <IntDir>obj\x64\Release\main\</IntDir>
+    <TargetName>main_release</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\dist\bin\RelWithDebInfo\</OutDir>
+    <IntDir>obj\x64\RelWithDebInfo\main\</IntDir>
+    <TargetName>main_release</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGpu|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\dist\bin\DebugGpu\</OutDir>
+    <IntDir>obj\x64\DebugGpu\main\</IntDir>
+    <TargetName>main_debug</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>__WINDOWS__;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>__WINDOWS__;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>__WINDOWS__;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugGpu|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>__WINDOWS__;DEBUG;DEBUG_GPU;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\contrib\json.hpp" />
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\GpuMemory.h" />
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\Orochi.h" />
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\OrochiUtils.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\cuew\include\cuew.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-death-test.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-message.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-param-test.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-printers.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-spi.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-test-part.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-typed-test.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest_pred_impl.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest_prod.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-death-test-internal.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-filepath.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-internal.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-linked_ptr.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-param-util-generated.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-param-util.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-port.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-string.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-tuple.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-type-util.h" />
+    <ClInclude Include="..\..\contrib\Orochi\contrib\hipew\include\hipew.h" />
+    <ClInclude Include="..\..\contrib\stb_image.h" />
+    <ClInclude Include="..\..\contrib\stb_image_write.h" />
+    <ClInclude Include="..\..\contrib\tiny_gltf.h" />
+    <ClInclude Include="..\..\hiprt\hiprt.h" />
+    <ClInclude Include="..\..\hiprt\hiprt_common.h" />
+    <ClInclude Include="..\..\hiprt\hiprt_device.h" />
+    <ClInclude Include="..\..\hiprt\hiprt_types.h" />
+    <ClInclude Include="..\..\hiprt\hiprt_vec.h" />
+    <ClInclude Include="..\..\hiprt\hiprtew.h" />
+    <ClInclude Include="..\..\src\common\Base.h" />
+    <ClInclude Include="..\..\src\common\Common.h" />
+    <ClInclude Include="..\..\src\common\Kernels.h" />
+    <ClInclude Include="..\common\SharedStructs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\contrib\Orochi\Orochi\Orochi.cpp" />
+    <ClCompile Include="..\..\contrib\Orochi\Orochi\OrochiUtils.cpp" />
+    <ClCompile Include="..\..\contrib\Orochi\contrib\cuew\src\cuew.cpp" />
+    <ClCompile Include="..\..\contrib\Orochi\contrib\hipew\src\hipew.cpp" />
+    <ClCompile Include="..\..\src\common\Base.cpp" />
+    <ClCompile Include="..\main.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

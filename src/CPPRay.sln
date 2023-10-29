@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33627.172
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "main", "build\main.vcxproj", "{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		DebugGpu|x64 = DebugGpu|x64
+		Release|x64 = Release|x64
+		RelWithDebInfo|x64 = RelWithDebInfo|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.Debug|x64.ActiveCfg = Debug|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.Debug|x64.Build.0 = Debug|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.DebugGpu|x64.ActiveCfg = DebugGpu|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.DebugGpu|x64.Build.0 = DebugGpu|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.Release|x64.ActiveCfg = Release|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.Release|x64.Build.0 = Release|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
+		{6A453487-D6B1-EF81-9FA5-87DF0BD111EA}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

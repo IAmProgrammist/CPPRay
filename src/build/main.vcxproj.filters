@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\src\common\Base.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\Orochi\Orochi\Orochi.cpp">
+      <Filter>libs\contrib\Orochi\Orochi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\Orochi\Orochi\OrochiUtils.cpp">
+      <Filter>libs\contrib\Orochi\Orochi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\Orochi\contrib\cuew\src\cuew.cpp">
+      <Filter>libs\contrib\Orochi\contrib\cuew\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\Orochi\contrib\hipew\src\hipew.cpp">
+      <Filter>libs\contrib\Orochi\contrib\hipew\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\common\Base.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\Common.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\Kernels.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprtew.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprt.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprt_common.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprt_device.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprt_types.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hiprt\hiprt_vec.h">
+      <Filter>libs\hiprt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\GpuMemory.h">
+      <Filter>libs\contrib\Orochi\Orochi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\Orochi.h">
+      <Filter>libs\contrib\Orochi\Orochi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\Orochi\OrochiUtils.h">
+      <Filter>libs\contrib\Orochi\Orochi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\cuew\include\cuew.h">
+      <Filter>libs\contrib\Orochi\contrib\cuew\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest_pred_impl.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest_prod.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-death-test.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-message.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-param-test.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-printers.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-spi.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-test-part.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\gtest-typed-test.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-death-test-internal.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-filepath.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-internal.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-linked_ptr.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-param-util.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-param-util-generated.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-port.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-string.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-tuple.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-type-util.h">
+      <Filter>libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Orochi\contrib\hipew\include\hipew.h">
+      <Filter>libs\contrib\Orochi\contrib\hipew\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\SharedStructs.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\tiny_gltf.h">
+      <Filter>libs\contrib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\json.hpp">
+      <Filter>libs\contrib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\stb_image.h">
+      <Filter>libs\contrib\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\stb_image_write.h">
+      <Filter>libs\contrib\stb</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{3390d105-4217-4c3a-b8e9-524f5f768968}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{707cb9d0-87ac-4ab3-9f9b-033809e84b08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{e6845613-f5ab-4be7-b690-11929eae526b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib">
+      <UniqueIdentifier>{e47e5406-b32d-49b2-8c86-091a9abf9348}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\hiprt">
+      <UniqueIdentifier>{7688f34b-5c74-4d3c-8759-ffd979187926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi">
+      <UniqueIdentifier>{975ffc52-6e9f-46d5-bb3e-f4e3566f7e09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib">
+      <UniqueIdentifier>{70dc58a4-8752-41f0-8cc4-8a76701689fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\Orochi">
+      <UniqueIdentifier>{f6df632a-4bba-48b5-bf73-a3b29aad8ce7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\cuew">
+      <UniqueIdentifier>{74a2300d-9176-4305-a8ea-2e93fd5f2595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\cuew\include">
+      <UniqueIdentifier>{7951405d-92af-4bfa-a518-aa0afbd5e3c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\cuew\src">
+      <UniqueIdentifier>{df7dc21a-1857-4b49-8cd5-c69c6e7f63ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\gtest-1.6.0">
+      <UniqueIdentifier>{2a8bc786-f08c-4a03-bf58-f91b3fd3f6cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\gtest-1.6.0\gtest">
+      <UniqueIdentifier>{c8a1370d-414d-4acb-ab76-7b610d897ae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal">
+      <UniqueIdentifier>{c7054046-da14-4bfb-99c4-3e9dae7726f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\hipew">
+      <UniqueIdentifier>{bc62ff5a-cfc5-433f-9b3a-d3816669d1a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\hipew\include">
+      <UniqueIdentifier>{e35d75ae-c2a5-419b-b521-dac050cc70da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\Orochi\contrib\hipew\src">
+      <UniqueIdentifier>{d2e1292e-885c-42ea-970b-e0fd9b030f5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\stb">
+      <UniqueIdentifier>{2112fa26-d6fe-4385-9a9a-823a8241c36e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

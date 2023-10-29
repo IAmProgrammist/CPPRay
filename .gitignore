@@ -1,0 +1,7 @@
+*.vs
+*.vscode
+*.png
+build/
+hiprt/
+tools/
+src/dist
