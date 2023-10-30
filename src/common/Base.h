@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
-#include "SharedStructs.h"
+#include "Common.h"
 
 #define CHECK_ORO( error ) ( checkOro( error, __FILE__, __LINE__ ) )
 void checkOro( oroError res, const char* file, int line );
@@ -100,7 +100,7 @@ class IRenderEngine
 	void deleteTexture( Texture texture ) { CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( texture.data ) ) ); };
 
 
-	virtual void run( u8* data ) = 0;
+	virtual void run( u8* data, int time ) = 0;
 
 	void buildTraceKernelFromBitcode(
 		hiprtContext				   ctxt,

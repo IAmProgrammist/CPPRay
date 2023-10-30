@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 #include <common/Common.h>
-#include <common/SharedStructs.h>
 #include <hiprt/hiprt_device.h>
 #include <hiprt/hiprt_vec.h>
 
@@ -44,7 +43,7 @@ __device__ u84 getAt( hiprtFloat2& uv, Texture& texture )
 }
 
 extern "C" __global__ void SceneIntersectionKernel(
-	hiprtScene scene, u8* pixels, int2 res, Texture* textures, Material* materials, int* materialIndices, float fov )
+	hiprtScene scene, u8* pixels, int2 res, Texture* textures, Material* materials, int* materialIndices, float fov, int frameTime )
 {
 	const int x = blockIdx.x * blockDim.x + threadIdx.x;
 	const int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -73,7 +72,8 @@ extern "C" __global__ void SceneIntersectionKernel(
 	ray.origin	  = o;
 	ray.direction = d;
 
-	hiprtSceneTraversalClosest tr( scene, ray, 0xffffffff );
+	float					   ft = frameTime;
+	hiprtSceneTraversalClosest tr( scene, ray, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
 	hiprtHit				   hit = tr.getNextHit();
 
 	int pixelIndex			   = x + y * res.x;
