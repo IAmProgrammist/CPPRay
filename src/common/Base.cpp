@@ -113,19 +113,19 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 	CHECK_ORO(
 		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( sceneInput.instanceGeometries ), geoms, sizeof( hiprtDevicePtr ) ) );
 
-	Camera		  cam( make_float3( 3.18, -3.06, 4.75 ), make_float4( 1, 0.6, 0.9, 46.8 ) );
+	hiprtFrameSRT frame;
 	constexpr int frameCount = 1;
-	sceneInput.frameCount	 = frameCount;
-	hiprtFrameSRT frame		 = cam.fromCameraPos();
-	/* for ( int i = 0; i < frameCount; i++ ) {
-		frames[i] = 
-		frames[i].time = i;
-	}*/
+	frame.translation		 = { 0, 0, 0 };
+	frame.rotation			 = { 1, 0, 0, 0 };
+	frame.scale				 = { 1, 1, 1 };
+	frame.time				 = 0;
 
 	CHECK_ORO(
 		oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceFrames ), sizeof( hiprtFrameSRT ) * frameCount ) );
 	CHECK_ORO( oroMemcpyHtoD(
 		reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ), &frame, sizeof( hiprtFrameSRT ) * frameCount ) );
+
+	sceneInput.frameCount = frameCount;
 
 	/* hiprtTransformHeader headers[1];
 	headers[0].frameIndex = 0;

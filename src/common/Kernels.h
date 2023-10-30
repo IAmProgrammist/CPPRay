@@ -34,8 +34,7 @@
 constexpr float Pi	  = 3.14159265358979323846f;
 constexpr float TwoPi = 2.0f * Pi;
 
-__device__ u84 getAt( hiprtFloat2& uv, Texture& texture )
-{
+__device__ u84 getAt( hiprtFloat2& uv, Texture& texture ) {
 	// TODO: изменить алгоритм подбора пикселя на линейную фильтрацию.
 	hiprtInt2 rootIndex = {
 		( (int)( uv.x * texture.size ) ) % texture.size, ( (int)( ( 1 - uv.y ) * texture.size ) ) % texture.size };
@@ -43,8 +42,14 @@ __device__ u84 getAt( hiprtFloat2& uv, Texture& texture )
 }
 
 extern "C" __global__ void SceneIntersectionKernel(
-	hiprtScene scene, u8* pixels, int2 res, Texture* textures, Material* materials, int* materialIndices, float fov, int frameTime )
-{
+	hiprtScene scene,
+	u8*		   pixels,
+	int2	   res,
+	Texture*   textures,
+	Material*  materials,
+	int*	   materialIndices,
+	Camera	   cam,
+	int		   frameTime ) {
 	const int x = blockIdx.x * blockDim.x + threadIdx.x;
 	const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -54,19 +59,27 @@ extern "C" __global__ void SceneIntersectionKernel(
 	float ar = static_cast<float>( res.x ) / res.y;
 	float h	 = 2 / ( 1 + ar );
 	float w	 = 2 - h;
-	
-	
-	if ( camType ==  CAMERA_TYPE_PERSPECTIVE )
-	{
-		o = { 0, 0, .0f };
+
+	if ( camType == CAMERA_TYPE_PERSPECTIVE ) {
+		o = cam.getPosition();
 		d = {
 			( x / static_cast<float>( res.x ) ) * w - w / 2,
 			-( ( y / static_cast<float>( res.y ) ) * h - h / 2 ),
-			( -w / 2 ) / tanf( degToRad( fov / 2 ) ) };
+			( -w / 2 ) / tanf( degToRad( cam.getFov() / 2 ) ) };
+		auto phi = cam.getRotation().w;
+		auto k	 = make_hiprtFloat3( cam.getRotation().x, cam.getRotation().y, cam.getRotation().z );
+		d		 = d * cos( phi ) + cross( k, d ) * sin( phi ) + k * ( k * d ) * ( 1 - cos( phi ) );
 	} else if ( camType == CAMERA_TYPE_ORTOGRAPHIC ) {
-		o = { ( x / static_cast<float>( res.x ) ) * w - w / 2, -( ( y / static_cast<float>( res.y ) ) * h - h / 2 ), .0f };
+		o = {
+			cam.getPosition().x + ( x / static_cast<float>( res.x ) ) * w - w / 2,
+			cam.getPosition().y - ( ( y / static_cast<float>( res.y ) ) * h - h / 2 ),
+			cam.getPosition().z };
 		d = { 0.0f, 0.0f, -1 };
-	} 
+		// TODO: доделать нормальный поворот
+		//auto phi = cam.getRotation().w;
+		//auto k	 = make_hiprtFloat3( cam.getRotation().x, cam.getRotation().y, cam.getRotation().z );
+		//d		 = d * cos( phi ) + cross( k, d ) * sin( phi ) + k * ( k * d ) * ( 1 - cos( phi ) );
+	}
 
 	hiprtRay ray;
 	ray.origin	  = o;
@@ -76,7 +89,7 @@ extern "C" __global__ void SceneIntersectionKernel(
 	hiprtSceneTraversalClosest tr( scene, ray, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
 	hiprtHit				   hit = tr.getNextHit();
 
-	int pixelIndex			   = x + y * res.x;
+	int pixelIndex = x + y * res.x;
 	u84 baseColor;
 	if ( hit.hasHit() )
 		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
