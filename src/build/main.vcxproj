@@ -216,7 +216,6 @@
     <ClInclude Include="..\..\src\common\Base.h" />
     <ClInclude Include="..\..\src\common\Common.h" />
     <ClInclude Include="..\..\src\common\Kernels.h" />
-    <ClInclude Include="..\common\SharedStructs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\Orochi\Orochi\Orochi.cpp" />

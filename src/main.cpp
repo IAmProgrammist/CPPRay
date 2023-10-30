@@ -26,7 +26,7 @@
 #include "../contrib/tiny_gltf.h"
 
 #include "common/Base.h"
-#include "common/SharedStructs.h"
+#include "common/Common.h"
 #include <gl/freeglut.h>
 
 #include <future>
@@ -41,10 +41,10 @@
 
 class RenderEngine : public IRenderEngine {
   public:
-	void run( u8* data ) {
+	void run( u8* data, int time ) {
 		renderingMutex.lock();
 		float fov	 = 45;
-		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &fov };
+		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &fov, &time };
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
@@ -52,6 +52,7 @@ class RenderEngine : public IRenderEngine {
 	}
 };
 
+int			 timeee  = 0;
 int			 width = 1280, height = 720;
 u8*			 data;
 RenderEngine renderEngine;
@@ -119,8 +120,11 @@ int main( int argc, char** argv ) {
 	auto future1 = std::async( std::launch::async, [] {
 		while ( true )
 		{
-			renderEngine.run( data );
+			renderEngine.run( data, timeee % 360 );
 			glutPostRedisplay();
+
+			timeee++;
+			Sleep( 100 );
 		}
 	} );
 
