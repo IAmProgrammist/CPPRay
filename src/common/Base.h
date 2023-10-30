@@ -60,7 +60,7 @@ class IRenderEngine
 	oroFunction				   func;
 	float					   spin = 0;
 	hiprtBuildOptions		   options;
-	std::mutex				   rendering_mutex;
+	std::mutex				   renderingMutex;
 	Texture*				   textures;
 	Material*				   materials;
 	int*					   materialIndices;

@@ -25,61 +25,58 @@
 
 #include "../contrib/tiny_gltf.h"
 
-#include <gl/freeglut.h>
 #include "common/Base.h"
 #include "common/SharedStructs.h"
+#include <gl/freeglut.h>
 
 #include <future>
 #include <iostream>
-#include <thread>
 #include <istream>
+#include <thread>
 
-//Texture createTexture( hiprtContext ctxt, std::istream& is, int size )
+// Texture createTexture( hiprtContext ctxt, std::istream& is, int size )
 //{
-	// TODO: сделать загрузку из файла
+//  TODO: сделать загрузку из файла
 //}
 
-class RenderEngine : public IRenderEngine
-{
+class RenderEngine : public IRenderEngine {
   public:
-	void run( u8* data )
-	{
-		rendering_mutex.lock();
+	void run( u8* data ) {
+		renderingMutex.lock();
 		float fov	 = 45;
 		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &fov };
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
-		rendering_mutex.unlock();
+		renderingMutex.unlock();
 	}
 };
 
-int width = 800, height = 600;
-u8* data;
+int			 width = 1280, height = 720;
+u8*			 data;
 RenderEngine renderEngine;
 
 void display();
 void resize( int w, int h );
 void init();
 
-void resize( int w, int h )
-{
-	//width = w, height = h;
+void resize( int w, int h ) {
+	w = width, h = height;
+	//renderEngine.renderingMutex.lock();
+	width = w, height = h;
 	//renderEngine.onResize( w, h );
 	glutReshapeWindow( width, height );
-	//display();
+	//data = (u8*)realloc( data, width * height * 4 );
+	//renderEngine.renderingMutex.unlock();
 }
 
-void display()
-{
-	glClearColor( 1.0, 1.0, 1.0, 0.0 );
+void display() {
+	glClearColor( 0, 0, 0, 0.0 );
 	glClear( GL_COLOR_BUFFER_BIT ); // clear display window
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
-	const double w = glutGet( GLUT_WINDOW_WIDTH );
-	const double h = glutGet( GLUT_WINDOW_HEIGHT );
-	gluOrtho2D( 0.0, w, 0.0, h );
+	gluOrtho2D( 0.0, width, 0.0, height);
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
@@ -88,35 +85,31 @@ void display()
 
 	glPointSize( 1.0f );
 	glBegin( GL_POINTS );
-	for ( int w = 0; w < width; w++ )
-	{
-		for ( int h = 0; h < height; h++ )
-		{
+	for ( int w = 0; w < width; w++ ) {
+		for ( int h = 0; h < height; h++ ) {
 			glColor4ub(
 				data[( w + width * h ) * 4],
 				data[( w + width * h ) * 4 + 1],
 				data[( w + width * h ) * 4 + 2],
 				data[( w + width * h ) * 4 + 3] );
 			glVertex2i( w, height - h );
+
 		}
 	}
 	glEnd();
 	glFlush();
-	glutSwapBuffers();
 }
 
 // Program to create an empty Widdow
-void init()
-{
-	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB ); // Line C
+void init() {
+	glutInitDisplayMode( GLUT_RGB ); // Line C
 	glutInitWindowSize( width, height );
 	glutCreateWindow( "CPPRay" );
 }
 
-int main( int argc, char** argv)
-{
-	data	   = (u8*)malloc( width * height * 4 );
-	renderEngine.init(0, width, height );
+int main( int argc, char** argv ) {
+	data = (u8*)malloc( width * height * 4 );
+	renderEngine.init( 0, width, height );
 
 	glutInit( &argc, argv ); // Line A
 	init();					 // Line B
@@ -124,7 +117,7 @@ int main( int argc, char** argv)
 	glutDisplayFunc( display );
 
 	auto future1 = std::async( std::launch::async, [] {
-		//while ( true )
+		while ( true )
 		{
 			renderEngine.run( data );
 			glutPostRedisplay();

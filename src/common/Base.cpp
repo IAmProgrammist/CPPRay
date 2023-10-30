@@ -172,13 +172,10 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 }
 
 void IRenderEngine::onResize( int width, int height ) { 
-	rendering_mutex.lock();
-
 	m_res = make_hiprtInt2( width, height );
 	
 	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( pixels ) ) );
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &pixels ), m_res.x * m_res.y * 4 ) );
-	rendering_mutex.unlock();
 }
 
 bool IRenderEngine::readSourceCode(
