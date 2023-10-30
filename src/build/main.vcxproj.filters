@@ -123,9 +123,6 @@
     <ClInclude Include="..\..\contrib\Orochi\contrib\hipew\include\hipew.h">
       <Filter>libs\contrib\Orochi\contrib\hipew\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SharedStructs.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\tiny_gltf.h">
       <Filter>libs\contrib</Filter>
     </ClInclude>

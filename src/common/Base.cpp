@@ -22,13 +22,11 @@
 
 #include "Base.h"
 
+#include "Common.h"
 #include <assert.h>
-#include "SharedStructs.h"
 
-void checkOro( oroError res, const char* file, int line )
-{
-	if ( res != oroSuccess )
-	{
+void checkOro( oroError res, const char* file, int line ) {
+	if ( res != oroSuccess ) {
 		const char* msg;
 		oroGetErrorString( res, &msg );
 		std::cerr << "Orochi error: '" << msg << "' on line " << line << " "
@@ -37,20 +35,16 @@ void checkOro( oroError res, const char* file, int line )
 	}
 }
 
-void checkOrortc( orortcResult res, const char* file, int line )
-{
-	if ( res != ORORTC_SUCCESS )
-	{
+void checkOrortc( orortcResult res, const char* file, int line ) {
+	if ( res != ORORTC_SUCCESS ) {
 		std::cerr << "ORORTC error: '" << orortcGetErrorString( res ) << "' [ " << res << " ] on line " << line << " "
 				  << " in '" << file << "'." << std::endl;
 		exit( EXIT_FAILURE );
 	}
 }
 
-void checkHiprt( hiprtError res, const char* file, int line )
-{
-	if ( res != hiprtSuccess )
-	{
+void checkHiprt( hiprtError res, const char* file, int line ) {
+	if ( res != hiprtSuccess ) {
 		std::cerr << "HIPRT error: '" << res << "' on line " << line << " "
 				  << " in '" << file << "'." << std::endl;
 		exit( EXIT_FAILURE );
@@ -90,21 +84,20 @@ void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt ) {
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &textures ), textureAmount * sizeof( Texture ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( textures ), texturesOrigin, textureAmount * sizeof( Texture ) ) );
 
-	// Загрузка материалов
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	constexpr int geomAmount			 = 1;
 	constexpr int matsAmount			 = 1;
 	Material	  matsOrigin[matsAmount] = { Material( 0, 0, 0, 0, 0 ) };
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materials ), matsAmount * sizeof( Material ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materials ), matsOrigin, matsAmount * sizeof( Material ) ) );
 
-	// Индексы материалов
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	int materialInd[geomAmount] = { 0 };
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materialIndices ), geomAmount * sizeof( int ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materialIndices ), materialInd, geomAmount * sizeof( int ) ) );
 }
 
-void IRenderEngine::init( int deviceIndex, int width, int height )
-{
+void IRenderEngine::init( int deviceIndex, int width, int height ) {
 	m_res = make_hiprtInt2( width, height );
 
 	CHECK_ORO( (oroError)oroInitialize( (oroApi)( ORO_API_HIP | ORO_API_CUDA ), 0 ) );
@@ -129,10 +122,9 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
+
 	loadModel( std::string(""), ctxt );
 
-	
-	// TUTORIAL CODE
 	sceneInput.instanceCount			= 1;
 	sceneInput.instanceMasks			= nullptr;
 	sceneInput.instanceTransformHeaders = nullptr;
@@ -141,13 +133,30 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 	CHECK_ORO(
 		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( sceneInput.instanceGeometries ), geoms, sizeof( hiprtDevicePtr ) ) );
 
-	hiprtFrameSRT frame;
-	frame.translation	  = make_hiprtFloat3( 0, 0.64, -2);
-	frame.scale			  = make_hiprtFloat3( 1, 1, 1 );
-	frame.rotation		  = make_hiprtFloat4( 0.773f, 0.334f, 0.539f, 0 );
-	sceneInput.frameCount = 1;
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceFrames ), sizeof( hiprtFrameSRT ) ) );
-	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ), &frame, sizeof( hiprtFrameSRT ) ) );
+	Camera		  cam( make_float3( 3.18, -3.06, 4.75 ), make_float4( 1, 0.6, 0.9, 46.8 ) );
+	constexpr int frameCount = 1;
+	sceneInput.frameCount	 = frameCount;
+	hiprtFrameSRT frame		 = cam.fromCameraPos();
+	/* for ( int i = 0; i < frameCount; i++ ) {
+		frames[i] = 
+		frames[i].time = i;
+	}*/
+
+	CHECK_ORO(
+		oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceFrames ), sizeof( hiprtFrameSRT ) * frameCount ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ), &frame, sizeof( hiprtFrameSRT ) * frameCount ) );
+
+	/* hiprtTransformHeader headers[1];
+	headers[0].frameIndex = 0;
+	headers[0].frameCount = frameCount;
+	CHECK_ORO( oroMalloc(
+		reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceTransformHeaders ),
+		sceneInput.instanceCount * sizeof( hiprtTransformHeader ) ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( sceneInput.instanceTransformHeaders ),
+		headers,
+		sceneInput.instanceCount * sizeof( hiprtTransformHeader ) ) );*/
 
 	size_t		   sceneTempSize;
 	hiprtDevicePtr sceneTemp;
@@ -157,10 +166,6 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 	CHECK_HIPRT( hiprtCreateScene( ctxt, sceneInput, options, scene ) );
 	CHECK_HIPRT( hiprtBuildScene( ctxt, hiprtBuildOperationBuild, sceneInput, options, sceneTemp, 0, scene ) );
 
-	
-
-	// TUTORIAL CODE
-
 	buildTraceKernelFromBitcode( ctxt, "../common/Kernels.h", "SceneIntersectionKernel", func );
 
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &pixels ), m_res.x * m_res.y * 4 ) );
@@ -169,31 +174,26 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
 }
 
-void IRenderEngine::onResize( int width, int height ) { 
+void IRenderEngine::onResize( int width, int height ) {
 	m_res = make_hiprtInt2( width, height );
-	
+
 	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( pixels ) ) );
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &pixels ), m_res.x * m_res.y * 4 ) );
 }
 
 bool IRenderEngine::readSourceCode(
-	const std::filesystem::path& path, std::string& sourceCode, std::optional<std::vector<std::filesystem::path>> includes )
-{
+	const std::filesystem::path& path, std::string& sourceCode, std::optional<std::vector<std::filesystem::path>> includes ) {
 	std::fstream f( path );
-	if ( f.is_open() )
-	{
+	if ( f.is_open() ) {
 		size_t sizeFile;
 		f.seekg( 0, std::fstream::end );
 		size_t size = sizeFile = static_cast<size_t>( f.tellg() );
 		f.seekg( 0, std::fstream::beg );
-		if ( includes )
-		{
+		if ( includes ) {
 			sourceCode.clear();
 			std::string line;
-			while ( std::getline( f, line ) )
-			{
-				if ( line.find( "#include" ) != std::string::npos )
-				{
+			while ( std::getline( f, line ) ) {
+				if ( line.find( "#include" ) != std::string::npos ) {
 					size_t		pa	= line.find( "<" );
 					size_t		pb	= line.find( ">" );
 					std::string buf = line.substr( pa + 1, pb - pa - 1 );
@@ -202,15 +202,12 @@ bool IRenderEngine::readSourceCode(
 				}
 				sourceCode += line + '\n';
 			}
-		}
-		else
-		{
+		} else {
 			sourceCode.resize( size, ' ' );
 			f.read( &sourceCode[0], size );
 		}
 		f.close();
-	}
-	else
+	} else
 		return false;
 	return true;
 }
@@ -223,14 +220,12 @@ void IRenderEngine::buildTraceKernelFromBitcode(
 	std::vector<const char*>*	   opts,
 	std::vector<hiprtFuncNameSet>* funcNameSets,
 	int							   numGeomTypes,
-	int							   numRayTypes )
-{
+	int							   numRayTypes ) {
 	std::vector<const char*>		   options;
 	std::vector<std::filesystem::path> includeNamesData;
 	std::string						   sourceCode;
 
-	if ( !readSourceCode( path, sourceCode, includeNamesData ) )
-	{
+	if ( !readSourceCode( path, sourceCode, includeNamesData ) ) {
 		std::cerr << "Unable to find file '" << path << "'" << std::endl;
 		;
 		exit( EXIT_FAILURE );
@@ -239,12 +234,9 @@ void IRenderEngine::buildTraceKernelFromBitcode(
 	std::vector<std::string> headersData( includeNamesData.size() );
 	std::vector<const char*> headers;
 	std::vector<const char*> includeNames;
-	for ( int i = 0; i < includeNamesData.size(); i++ )
-	{
-		if ( !readSourceCode( std::string( "../../" ) / includeNamesData[i], headersData[i] ) )
-		{
-			if ( !readSourceCode( std::string( "../" ) / includeNamesData[i], headersData[i] ) )
-			{
+	for ( int i = 0; i < includeNamesData.size(); i++ ) {
+		if ( !readSourceCode( std::string( "../../" ) / includeNamesData[i], headersData[i] ) ) {
+			if ( !readSourceCode( std::string( "../" ) / includeNamesData[i], headersData[i] ) ) {
 				std::cerr << "Failed to find header file '" << includeNamesData[i] << "' in path ../ or ../../!" << std::endl;
 				exit( EXIT_FAILURE );
 			}
@@ -253,23 +245,19 @@ void IRenderEngine::buildTraceKernelFromBitcode(
 		headers.push_back( headersData[i].c_str() );
 	}
 
-	if ( opts )
-	{
+	if ( opts ) {
 		for ( const auto o : *opts )
 			options.push_back( o );
 	}
 
 	const bool isAmd = oroGetCurAPI( 0 ) == ORO_API_HIP;
-	if ( isAmd )
-	{
+	if ( isAmd ) {
 		options.push_back( "-fgpu-rdc" );
 		options.push_back( "-Xclang" );
 		options.push_back( "-disable-llvm-passes" );
 		options.push_back( "-Xclang" );
 		options.push_back( "-mno-constructor-aliases" );
-	}
-	else
-	{
+	} else {
 		options.push_back( "--device-c" );
 		options.push_back( "-arch=compute_60" );
 	}
@@ -283,13 +271,11 @@ void IRenderEngine::buildTraceKernelFromBitcode(
 	CHECK_ORORTC( orortcAddNameExpression( prog, functionName ) );
 
 	orortcResult e = orortcCompileProgram( prog, static_cast<int>( options.size() ), options.data() );
-	if ( e != ORORTC_SUCCESS )
-	{
+	if ( e != ORORTC_SUCCESS ) {
 		size_t logSize;
 		CHECK_ORORTC( orortcGetProgramLogSize( prog, &logSize ) );
 
-		if ( logSize )
-		{
+		if ( logSize ) {
 			std::string log( logSize, '\0' );
 			orortcGetProgramLog( prog, &log[0] );
 			std::cerr << log << std::endl;
@@ -330,8 +316,7 @@ void IRenderEngine::buildTraceKernelFromBitcode(
 
 void IRenderEngine::launchKernel( oroFunction func, int nx, int ny, void** args ) { launchKernel( func, nx, ny, 8, 8, args ); }
 
-void IRenderEngine::launchKernel( oroFunction func, int nx, int ny, int bx, int by, void** args )
-{
+void IRenderEngine::launchKernel( oroFunction func, int nx, int ny, int bx, int by, void** args ) {
 	hiprtInt3 nb;
 	nb.x = ( nx + bx - 1 ) / bx;
 	nb.y = ( ny + by - 1 ) / by;
