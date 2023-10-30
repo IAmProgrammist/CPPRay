@@ -102,6 +102,8 @@ class IRenderEngine
 
 	virtual void run( u8* data ) = 0;
 
+	void loadModel( std::string& path, hiprtContext& ctxt );
+
 	void buildTraceKernelFromBitcode(
 		hiprtContext				   ctxt,
 		const char*					   path,

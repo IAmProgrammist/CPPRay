@@ -57,6 +57,52 @@ void checkHiprt( hiprtError res, const char* file, int line )
 	}
 }
 
+void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt ) {
+	mesh.triangleCount	  = 4;
+	mesh.triangleStride	  = sizeof( hiprtInt3 );
+	int triangleIndices[] = { 2, 1, 0, 0, 1, 3, 3, 2, 0, 1, 2, 3 };
+	CHECK_ORO(
+		oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.triangleIndices ), mesh.triangleCount * sizeof( hiprtInt3 ) ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ), triangleIndices, mesh.triangleCount * sizeof( hiprtInt3 ) ) );
+
+	mesh.vertexCount	   = 4;
+	mesh.vertexStride	   = sizeof( hiprtFloat3 );
+	hiprtFloat3 vertices[] = { { 1.45, -0.3, -0.8 }, { -1, -1, -1 }, { -0.2, 1, -0.46 }, { 0.3, -0.44, 1 } };
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.vertices ), mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
+	CHECK_ORO(
+		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( mesh.vertices ), vertices, mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
+
+	hiprtGeometryBuildInput geomInput;
+	geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
+	geomInput.triangleMesh.primitive = mesh;
+
+	size_t geomTempSize;
+	options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
+	CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
+
+	CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
+	CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
+
+	textureAmount			 = 1;
+	Texture texturesOrigin[] = { createTexture( ctxt, { 255, 0, 0, 0 } ) };
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &textures ), textureAmount * sizeof( Texture ) ) );
+	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( textures ), texturesOrigin, textureAmount * sizeof( Texture ) ) );
+
+	// Загрузка материалов
+	constexpr int geomAmount			 = 1;
+	constexpr int matsAmount			 = 1;
+	Material	  matsOrigin[matsAmount] = { Material( 0, 0, 0, 0, 0 ) };
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materials ), matsAmount * sizeof( Material ) ) );
+	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materials ), matsOrigin, matsAmount * sizeof( Material ) ) );
+
+	// Индексы материалов
+	int materialInd[geomAmount] = { 0 };
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materialIndices ), geomAmount * sizeof( int ) ) );
+	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materialIndices ), materialInd, geomAmount * sizeof( int ) ) );
+}
+
 void IRenderEngine::init( int deviceIndex, int width, int height )
 {
 	m_res = make_hiprtInt2( width, height );
@@ -83,40 +129,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
-	mesh.triangleCount = 4;
-	mesh.triangleStride	  = sizeof( hiprtInt3 );
-	int triangleIndices[] = { 
-		2, 1, 0, 
-		0, 1, 3,
-	3, 2, 0,
-	1, 2, 3};
-	CHECK_ORO(
-		oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.triangleIndices ), mesh.triangleCount * sizeof( hiprtInt3 ) ) );
-	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ), triangleIndices, mesh.triangleCount * sizeof( hiprtInt3 ) ) );
-
-	mesh.vertexCount	   = 4;
-	mesh.vertexStride	   = sizeof( hiprtFloat3 );
-	hiprtFloat3 vertices[] = { 
-		{ 1.45, -0.3, -0.8 }, 
-		{ -1, -1, -1 }, 
-		{ -0.2, 1, -0.46 }, 
-		{ 0.3, -0.44, 1 } };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.vertices ), mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
-	CHECK_ORO(
-		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( mesh.vertices ), vertices, mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
-
-	hiprtGeometryBuildInput geomInput;
-	geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
-	geomInput.triangleMesh.primitive = mesh;
-
-	size_t geomTempSize;
-	options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
-	CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
-
-	CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
-	CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
+	loadModel( std::string(""), ctxt );
 
 	
 	// TUTORIAL CODE
@@ -144,22 +157,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height )
 	CHECK_HIPRT( hiprtCreateScene( ctxt, sceneInput, options, scene ) );
 	CHECK_HIPRT( hiprtBuildScene( ctxt, hiprtBuildOperationBuild, sceneInput, options, sceneTemp, 0, scene ) );
 
-	textureAmount					= 1;
-	Texture texturesOrigin[] = { createTexture( ctxt, { 255, 0, 0, 0 } ) };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &textures ), textureAmount * sizeof( Texture ) ) );
-	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( textures ), texturesOrigin, textureAmount * sizeof( Texture ) ) );
-
-	// Загрузка материалов
-	constexpr int geomAmount			 = 1;
-	constexpr int matsAmount			 = 1;
-	Material	  matsOrigin[matsAmount] = { Material( 0, 0, 0, 0, 0 ) };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materials ), matsAmount * sizeof( Material ) ) );
-	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materials ), matsOrigin, matsAmount * sizeof( Material ) ) );
-
-	// Индексы материалов
-	int	 materialInd[geomAmount] = { 0 };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materialIndices ), geomAmount * sizeof( int ) ) );
-	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materialIndices ), materialInd, geomAmount * sizeof( int ) ) );
+	
 
 	// TUTORIAL CODE
 
