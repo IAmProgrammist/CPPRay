@@ -34,17 +34,12 @@
 #include <istream>
 #include <thread>
 
-// Texture createTexture( hiprtContext ctxt, std::istream& is, int size )
-//{
-//  TODO: сделать загрузку из файла
-//}
-
 class RenderEngine : public IRenderEngine {
   public:
 	void run( u8* data, int time ) {
 		renderingMutex.lock();
-		float fov	 = 45;
-		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &fov, &time };
+		Camera cam( make_float3( -0.28, 0.43, 0.84 ), make_float4( -0.058424, 0.733592, 0.677074, degToRad( 0 ) ), 80 );
+		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &cam, &time };
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
@@ -118,13 +113,13 @@ int main( int argc, char** argv ) {
 	glutDisplayFunc( display );
 
 	auto future1 = std::async( std::launch::async, [] {
-		while ( true )
+		//while ( true )
 		{
 			renderEngine.run( data, timeee % 360 );
 			glutPostRedisplay();
 
 			timeee++;
-			Sleep( 100 );
+			Sleep( 50 );
 		}
 	} );
 

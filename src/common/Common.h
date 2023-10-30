@@ -885,71 +885,31 @@ struct Material {
 };
 
 struct Camera {
+  private:
+	float  positionX;
+	float  positionY;
+	float  positionZ;
+	float  rotationX;
+	float  rotationY;
+	float  rotationZ;
+	float  rotationW;
+	float  fov;
+
   public:
-	// X Y Z
-	float3 position = make_float3(0, 0, 0);
-	// Euler XYZ
-	float4 rotation = make_float4( 1, 0, 0, 0 );
-
-	Camera(float3 position, float4 rotation) { 
-		this->position.x = position.x;
-		this->position.y = position.y;
-		this->position.z = position.z;
-		this->rotation.x = rotation.x;
-		this->rotation.y = rotation.y;
-		this->rotation.z = rotation.z;
-		this->rotation.w = rotation.w;
+	Camera(float3 position, float4 rotation, float fov) { 
+		this->positionX	 = position.x;
+		this->positionY	 = position.y;
+		this->positionZ	 = position.z;
+		this->rotationX	 = rotation.x;
+		this->rotationY	 = rotation.y;
+		this->rotationZ	 = rotation.z;
+		this->rotationW  = rotation.w;
+		this->fov		 = fov;
 	}
 
-	// TODO: remake
-	HOST_DEVICE static float4 getRotationInAxisAngle( float3 rot ) {
-		// Assuming the angles are in radians.
-		double c1	= cos( rot.z / 2 );
-		double s1	= sin( rot.z / 2 );
-		double c2	= cos( rot.x / 2 );
-		double s2	= sin( rot.x / 2 );
-		double c3	= cos( rot.y / 2 );
-		double s3	= sin( rot.y / 2 );
-		double c1c2 = c1 * c2;
-		double s1s2 = s1 * s2;
-		float4 answer;
-		answer.w			= c1c2 * c3 - s1s2 * s3;
-		answer.x			= c1c2 * s3 + s1s2 * c3;
-		answer.y			= s1 * c2 * c3 + c1 * s2 * s3;
-		answer.z			= c1 * s2 * c3 - s1 * c2 * s3;
-		answer.w			= radToDeg(2 * acos( answer.w ));
-		double norm = answer.x * answer.x + answer.y * answer.y + answer.z * answer.z;
-		if ( norm < 0.001 ) { // when all euler angles are zero angle =0 so
-			// we can set axis to anything to avoid divide by zero
-			answer.x = 1;
-			answer.y = answer.z = 0;
-		} else {
-			norm = sqrt( norm );
-			answer.x /= norm;
-			answer.y /= norm;
-			answer.z /= norm;
-		}
+	HOST_DEVICE INLINE float3 getPosition() { return make_float3( positionX, positionY, positionZ ); };
 
-		return answer;
-	}
+	HOST_DEVICE INLINE float4 getRotation() { return make_float4( rotationX, rotationY, rotationZ, rotationW ); };
 
-	//HOST_DEVICE float4 getRotationInAxisAngle() { return Camera::getRotationInAxisAngle( this->rotation );
-	//}
-
-#ifndef __KERNELCC__
-	// Creates frame properties from absolute camera position in world
-	// position: x, y, z
-	// Rotation: x, y, z, w (angle in deg)
-	HOST hiprtFrameSRT fromCameraPos() {
-		hiprtFrameSRT frame;
-		frame.scale						= make_hiprtFloat3( 1, 1, 1 );
-		frame.rotation	  = make_hiprtFloat4( rotation.x, rotation.y, rotation.z, degToRad( -rotation.w ) );
-		auto k			  = make_float3( frame.rotation.x, frame.rotation.y, frame.rotation.z );
-		auto v			  = make_float3( -position.x, -position.y, -position.z );
-		auto phi		  = frame.rotation.w;
-		frame.translation = v * cosf( phi ) + ( cross( k, v ) ) * sinf( phi ) + k * ( k * v ) * ( 1 - cosf( phi ) );
-
-		return frame;
-	}
-#endif
+	HOST_DEVICE INLINE float getFov() { return fov; };
 };
