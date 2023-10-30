@@ -24,6 +24,7 @@
 
 #include "Common.h"
 #include <assert.h>
+#include <tiny_gltf.h>
 
 void checkOro( oroError res, const char* file, int line ) {
 	if ( res != oroSuccess ) {
@@ -51,8 +52,8 @@ void checkHiprt( hiprtError res, const char* file, int line ) {
 	}
 }
 
-void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt ) {
-	mesh.triangleCount	  = 4;
+void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt, int sceneIndex ) {
+	/* mesh.triangleCount = 4;
 	mesh.triangleStride	  = sizeof( hiprtInt3 );
 	int triangleIndices[] = { 2, 1, 0, 0, 1, 3, 3, 2, 0, 1, 2, 3 };
 	CHECK_ORO(
@@ -77,7 +78,81 @@ void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt ) {
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
 
 	CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
-	CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
+	CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );*/
+	tinygltf::Model		model;
+	tinygltf::TinyGLTF loader;
+	std::string err;
+	std::string warn;
+
+	bool ret = loader.LoadASCIIFromFile( &model, &err, &warn, path );
+
+	if ( !warn.empty() )
+		printf( "Warn: %s\n", warn.c_str() );
+
+	if ( !err.empty() )
+		printf( "Err: %s\n", err.c_str() );
+
+	if ( !ret )
+		throw std::runtime_error( "Failed to parse glTF" );
+
+	for ( auto mesh : model.meshes ) {
+		for ( auto meshPrimitive : mesh.primitives ) {
+			hiprtTriangleMeshPrimitive hipMesh;
+
+			// Load indices
+			hipMesh.triangleCount  = model.accessors[meshPrimitive.indices].count;
+			hipMesh.triangleStride = tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType );
+
+			auto indicesBufferView = model.bufferViews[model.accessors[meshPrimitive.indices].bufferView];
+
+			CHECK_ORO( oroMalloc(
+				reinterpret_cast<oroDeviceptr*>( &hipMesh.triangleIndices ), hipMesh.triangleCount * hipMesh.triangleStride ) );
+			CHECK_ORO( oroMemcpyHtoD(
+				reinterpret_cast<oroDeviceptr>( hipMesh.triangleIndices ),
+				&model.buffers[indicesBufferView.buffer].data[0] + indicesBufferView.byteOffset,
+				hipMesh.triangleCount * hipMesh.triangleStride ) );
+
+
+			// Load vertices
+			auto accessorIter = meshPrimitive.attributes.find( "POSITION" );
+			if ( accessorIter != meshPrimitive.attributes.end() ) {
+				int accessorIndex = ( *accessorIter ).second;
+
+				hipMesh.vertexCount	   = model.accessors[accessorIndex].count;
+				hipMesh.vertexStride   = tinygltf::GetComponentSizeInBytes( model.accessors[accessorIndex].componentType ) * 3;
+
+				auto vertexBufferView  = model.bufferViews[model.accessors[accessorIndex].bufferView];
+
+				CHECK_ORO( oroMalloc(
+					reinterpret_cast<oroDeviceptr*>( &hipMesh.vertices ), hipMesh.vertexCount * hipMesh.vertexStride ) );
+				CHECK_ORO( oroMemcpyHtoD(
+					reinterpret_cast<oroDeviceptr>( hipMesh.vertices ),
+					&model.buffers[vertexBufferView.buffer].data[0] + vertexBufferView.byteOffset,
+					hipMesh.vertexCount * hipMesh.vertexStride ) );
+			} else {
+				throw std::string( "Err: no POSITION attribute specified in primitive");
+			}
+
+			hiprtGeometryBuildInput geomInput;
+			geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
+			geomInput.triangleMesh.primitive = hipMesh;
+
+			size_t geomTempSize;
+			hiprtDevicePtr	  geomTemp;
+			hiprtBuildOptions options;
+			options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
+			CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
+			CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
+
+			hiprtGeometry geom;
+			CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
+			CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
+
+			geometries.push_back( geom );
+
+			CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
+		}
+	}
 
 	textureAmount			 = 1;
 	Texture texturesOrigin[] = { createTexture( ctxt, { 255, 0, 0, 0 } ) };
@@ -85,14 +160,14 @@ void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt ) {
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( textures ), texturesOrigin, textureAmount * sizeof( Texture ) ) );
 
 	// �������� ����������
-	constexpr int geomAmount			 = 1;
+	constexpr int geomAmount			 = 2;
 	constexpr int matsAmount			 = 1;
 	Material	  matsOrigin[matsAmount] = { Material( 0, 0, 0, 0, 0 ) };
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materials ), matsAmount * sizeof( Material ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materials ), matsOrigin, matsAmount * sizeof( Material ) ) );
 
 	// ������� ����������
-	int materialInd[geomAmount] = { 0 };
+	int materialInd[geomAmount] = { 0, 0 };
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materialIndices ), geomAmount * sizeof( int ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materialIndices ), materialInd, geomAmount * sizeof( int ) ) );
 }
@@ -123,15 +198,18 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
 
-	loadModel( std::string(""), ctxt );
+	loadModel( std::string("model.gltf"), ctxt );
 
-	sceneInput.instanceCount			= 1;
+	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
 	sceneInput.instanceTransformHeaders = nullptr;
-	hiprtDevicePtr geoms[]				= { geom };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceGeometries ), sizeof( hiprtDevicePtr ) ) );
-	CHECK_ORO(
-		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( sceneInput.instanceGeometries ), geoms, sizeof( hiprtDevicePtr ) ) );
+	CHECK_ORO( oroMalloc(
+		reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceGeometries ),
+		sizeof( hiprtDevicePtr ) * sceneInput.instanceCount ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( sceneInput.instanceGeometries ),
+		&geometries[0],
+		sizeof( hiprtDevicePtr ) * sceneInput.instanceCount ) );
 
 	hiprtFrameSRT frame;
 	constexpr int frameCount = 1;
@@ -171,7 +249,6 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &pixels ), m_res.x * m_res.y * 4 ) );
 
 	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( sceneTemp ) ) );
-	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
 }
 
 void IRenderEngine::onResize( int width, int height ) {

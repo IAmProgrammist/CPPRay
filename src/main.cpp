@@ -38,7 +38,8 @@ class RenderEngine : public IRenderEngine {
   public:
 	void run( u8* data, int time ) {
 		renderingMutex.lock();
-		Camera cam( make_float3( -0.28, 0.43, 0.84 ), make_float4( -0.058424, 0.733592, 0.677074, degToRad( 0 ) ), 80 );
+		Camera cam( make_float3( -0.34, 0.15089, 6.83 ), 
+			make_float4( 0.09, -0.640, -0.763, degToRad( 0 ) ), 40 );
 		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &cam, &time };
 		launchKernel( func, m_res.x, m_res.y, args );
 

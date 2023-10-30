@@ -91,9 +91,13 @@ extern "C" __global__ void SceneIntersectionKernel(
 
 	int pixelIndex = x + y * res.x;
 	u84 baseColor;
-	if ( hit.hasHit() )
+	if ( hit.hasHit() ) {
+		//printf( "VECTORY!!!\n" );
+		//printf( "%f %f %f %f %f %f\n", hit.normal.x, hit.normal.y, hit.normal.z,
+		//	ray.direction.x, ray.direction.y, ray.direction.z);
 		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-	else
+		//printf( "%d %d %d %f\n", baseColor.r, baseColor.g, baseColor.b, cos( hit.normal, ray.direction ) );
+	}  else
 		baseColor = { 0, 0, 0, 0 };
 	float cosAngle = ( cos( hit.normal, ray.direction ) );
 

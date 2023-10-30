@@ -51,10 +51,7 @@ class IRenderEngine
 {
   public:
 	hiprtSceneBuildInput	   sceneInput;
-	hiprtTriangleMeshPrimitive mesh;
-	hiprtDevicePtr			   geomTemp;
 	u8*						   pixels;
-	hiprtGeometry			   geom;
 	hiprtScene				   scene;
 	hiprtContext			   ctxt;
 	oroFunction				   func;
@@ -65,6 +62,7 @@ class IRenderEngine
 	Material*				   materials;
 	int*					   materialIndices;
 	int						   textureAmount;
+	std::vector<hiprtGeometry> geometries;
 
 	virtual ~IRenderEngine()
 	{
@@ -73,14 +71,14 @@ class IRenderEngine
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( textures ) ) );
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( materials ) ) );
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( materialIndices) ) );
-		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ) ) );
-		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.vertices ) ) );
+		//CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ) ) );
+		//CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.vertices ) ) );
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( pixels ) ) );
 
 		// Insert missing code here
 
 		CHECK_HIPRT( hiprtDestroyScene( ctxt, scene ) );
-		CHECK_HIPRT( hiprtDestroyGeometry( ctxt, geom ) );
+		//CHECK_HIPRT( hiprtDestroyGeometry( ctxt, geom ) );
 		CHECK_HIPRT( hiprtDestroyContext( ctxt ) );
 	}
 	void init( int deviceIndex = 0, int width = 800, int height = 600 );
@@ -102,7 +100,7 @@ class IRenderEngine
 
 	virtual void run( u8* data, int time ) = 0;
 
-	void loadModel( std::string& path, hiprtContext& ctxt );
+	void loadModel( std::string& path, hiprtContext& ctxt, int sceneIndex = 0 );
 
 	void buildTraceKernelFromBitcode(
 		hiprtContext				   ctxt,
