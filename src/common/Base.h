@@ -128,5 +128,5 @@ class IRenderEngine
 	oroCtx					  m_oroCtx;
 	oroDevice				  m_oroDevice;
 	hiprtInt2				  m_res;
-	
+	Geometry*				  gpuGeometry;
 };
