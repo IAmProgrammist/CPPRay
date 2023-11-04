@@ -68,9 +68,8 @@ extern "C" __global__ void SceneIntersectionKernel(
 			( x / static_cast<float>( res.x ) ) * w - w / 2,
 			-( ( y / static_cast<float>( res.y ) ) * h - h / 2 ),
 			( -w / 2 ) / tanf( degToRad( cam.getFov() / 2 ) ) };
-		auto phi = cam.getRotation().w;
-		auto k	 = make_hiprtFloat3( cam.getRotation().x, cam.getRotation().y, cam.getRotation().z );
-		d		 = d * cos( phi ) + cross( k, d ) * sin( phi ) + k * ( k * d ) * ( 1 - cos( phi ) );
+		
+		d = cam.getRotatedVector( d );
 	} else if ( camType == CAMERA_TYPE_ORTOGRAPHIC ) {
 		o = {
 			cam.getPosition().x + ( x / static_cast<float>( res.x ) ) * w - w / 2,
