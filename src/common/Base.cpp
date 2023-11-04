@@ -223,12 +223,34 @@ void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt, int sceneI
 
 				auto normalBufferView = model.bufferViews[model.accessors[accessorIndex].bufferView];
 
+				/// AAAAAAAAAAAAAAAAAAAAAAAA
+				a = (hiprtFloat3*)malloc( normalCount * normalStride );
+				memcpy(
+					a,
+					&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
+					normalCount * normalStride );
+
+				for ( int i = 0; i < normalCount; i++ ) {
+					std::swap( a[i].y, a[i].z );
+					a[i].y = -a[i].y;
+				}
+
 				CHECK_ORO( oroMalloc(
 					reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].normals ), normalCount * normalStride ) );
 				CHECK_ORO( oroMemcpyHtoD(
 					reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].normals ),
-					&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
+					a, 
 					normalCount * normalStride ) );
+
+				free( a );
+				/// AAAAAAAAAAAAAAAAAAAAAAAA
+
+				//CHECK_ORO( oroMalloc(
+				//	reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].normals ), normalCount * normalStride ) );
+				//CHECK_ORO( oroMemcpyHtoD(
+				//	reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].normals ),
+				//	&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
+				//	normalCount * normalStride ) );
 
 				//hiprtFloat3* b = (hiprtFloat3*)malloc( normalCount * normalStride );
 				//memcpy(
@@ -294,7 +316,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
-	loadModel( std::string( "koteyka.gltf" ), ctxt );
+	loadModel( std::string( "sm.gltf" ), ctxt );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
