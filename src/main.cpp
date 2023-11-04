@@ -38,17 +38,31 @@ class RenderEngine : public IRenderEngine {
   public:
 	void run( u8* data, int time ) {
 		renderingMutex.lock();
-		Camera cam( make_float3( -0.28, 0.43, 0.84 ), make_float4( -0.058424, 0.733592, 0.677074, degToRad( 0 ) ), 80 );
-		void* args[] = { &scene, &pixels, &m_res, &textures, &materials, &materialIndices, &cam, &time };
+
+		float3* debug = (float3*)malloc( sizeof( float3 ) * 4 );
+		float3* gpuDebug;
+		CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuDebug ), sizeof( float3 ) * 4 ) );
+
+		Camera cam( make_float3( 0, 0, 3 ), 
+			make_float4( 0.09, -0.640, -0.763, degToRad( 0 ) ), 10 );
+		void*  args[] = { &scene, &pixels, &m_res, &gpuGeometry, &textures, &materials, &materialIndices, &cam, &time, &gpuDebug };
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
 		renderingMutex.unlock();
+
+		CHECK_ORO( oroMemcpyDtoH( debug, reinterpret_cast<oroDeviceptr>( gpuDebug ), sizeof( float3 ) * 4 ) );
+
+		for ( int i = 0; i < 4; i++ ) {
+			float3 bam = debug[i];
+
+			bam = bam;
+		}
 	}
 };
 
 int			 timeee  = 0;
-int			 width = 1280, height = 720;
+int			 width = 1000, height = 1000;
 u8*			 data;
 RenderEngine renderEngine;
 

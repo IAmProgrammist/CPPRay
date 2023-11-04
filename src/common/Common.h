@@ -853,7 +853,11 @@ HOST_DEVICE INLINE float3 normalize( const float3& a ) { return a / sqrtf( dot( 
 
 HOST_DEVICE INLINE float len( const float3& a ) { return sqrtf( a.x * a.x + a.y * a.y + a.z * a.z ); };
 
-HOST_DEVICE INLINE float cos( const float3& a, const float3& b ) { return dot( a, b ) / ( len( a ) * len(b)); }
+HOST_DEVICE INLINE float cos( const float3& a, const float3& b ) { return dot( a, b ) / ( len( a ) * len( b ) ); }
+
+HOST_DEVICE INLINE float sin( const float3& a, const float3& b ) { return 1 - cos( a, b ) * cos( a, b ); }
+
+HOST_DEVICE INLINE float tan( const float3& a, const float3& b ) { return sin(a, b) / cos(a, b); }
 
 #include <hiprt/hiprt_device.h>
 #include <hiprt/hiprt_vec.h>
@@ -912,4 +916,10 @@ struct Camera {
 	HOST_DEVICE INLINE float4 getRotation() { return make_float4( rotationX, rotationY, rotationZ, rotationW ); };
 
 	HOST_DEVICE INLINE float getFov() { return fov; };
+};
+
+struct Geometry {
+	int3*	indices;
+	float3* vertices;
+	float3* normals;
 };

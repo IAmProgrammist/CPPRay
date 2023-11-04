@@ -45,11 +45,13 @@ extern "C" __global__ void SceneIntersectionKernel(
 	hiprtScene scene,
 	u8*		   pixels,
 	int2	   res,
+	Geometry*  geometry,
 	Texture*   textures,
 	Material*  materials,
 	int*	   materialIndices,
 	Camera	   cam,
-	int		   frameTime ) {
+	int		   frameTime,
+	float3* debug) {
 	const int x = blockIdx.x * blockDim.x + threadIdx.x;
 	const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -90,12 +92,33 @@ extern "C" __global__ void SceneIntersectionKernel(
 	hiprtHit				   hit = tr.getNextHit();
 
 	int pixelIndex = x + y * res.x;
+	float cosAngle = 1;
 	u84 baseColor;
-	if ( hit.hasHit() )
-		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-	else
+	if ( hit.hasHit() ) {
+		hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
+		hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
+		hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
+		hiprtFloat3 hitNormal = N1 + N2 + N3;
+		hitNormal			  = normalize( N1 + N2 + N3 );
+
+		//debug[hit.primID] = hitNormal;
+
+
+		//printf( "%d\n", hit.primID );
+		//printf( "%f %f %f %f %f %f %f %f %f\n", N1.x, N1.y, N1.z, N2.x, N2.y, N2.z, N3.x, N3.y, N3.z);
+
+		baseColor = { 255, 255, 255, 0 };
+		//baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
+		cosAngle  = 0;
+		pixels[pixelIndex * 4 + 0] = max( baseColor.r * cos( -hitNormal, ray.direction ), 0 );
+		pixels[pixelIndex * 4 + 1] = max( baseColor.g * cos( hitNormal, ray.direction ), 0 );
+		pixels[pixelIndex * 4 + 2] = max( baseColor.b * sin( hitNormal, ray.direction ), 0 );
+		pixels[pixelIndex * 4 + 3] = 0;
+		return;
+	} else
 		baseColor = { 0, 0, 0, 0 };
-	float cosAngle = ( cos( hit.normal, ray.direction ) );
+
+	//( cos( hitNormal, ray.direction ) );
 
 	pixels[pixelIndex * 4 + 0] = max( baseColor.r * cosAngle, 0 );
 	pixels[pixelIndex * 4 + 1] = max( baseColor.g * cosAngle, 0 );
