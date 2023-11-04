@@ -97,27 +97,14 @@ extern "C" __global__ void SceneIntersectionKernel(
 		hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
 		hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
 		hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
-		hiprtFloat3 hitNormal = N1 + N2 + N3;
-		hitNormal			  = normalize( N1 + N2 + N3 );
-
-		//debug[hit.primID] = hitNormal;
-
-
-		//printf( "%d\n", hit.primID );
-		//printf( "%f %f %f %f %f %f %f %f %f\n", N1.x, N1.y, N1.z, N2.x, N2.y, N2.z, N3.x, N3.y, N3.z);
-
-		baseColor = { 255, 255, 255, 0 };
-		//baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-		cosAngle  = 0;
-		pixels[pixelIndex * 4 + 0] = max( baseColor.r * cos( -hitNormal, ray.direction ), 0 );
-		pixels[pixelIndex * 4 + 1] = max( baseColor.g * cos( hitNormal, ray.direction ), 0 );
-		pixels[pixelIndex * 4 + 2] = max( baseColor.b * sin( hitNormal, ray.direction ), 0 );
-		pixels[pixelIndex * 4 + 3] = 0;
-		return;
+		float		u		  = hit.uv.x;
+		float		v		  = hit.uv.y;
+		float		w		  = 1 - hit.uv.x - hit.uv.y;
+		hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
+		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
+		cosAngle				   = cos( hitNormal, d );
 	} else
 		baseColor = { 0, 0, 0, 0 };
-
-	//( cos( hitNormal, ray.direction ) );
 
 	pixels[pixelIndex * 4 + 0] = max( baseColor.r * cosAngle, 0 );
 	pixels[pixelIndex * 4 + 1] = max( baseColor.g * cosAngle, 0 );
