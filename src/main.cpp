@@ -66,7 +66,7 @@ class RenderEngine : public IRenderEngine {
 };
 
 int			 timeee  = 0;
-int			 width = 1000, height = 1000;
+int			 width = 1280, height = 720;
 u8*			 data;
 RenderEngine renderEngine;
 
