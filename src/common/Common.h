@@ -896,24 +896,45 @@ struct Camera {
 	float  rotationX;
 	float  rotationY;
 	float  rotationZ;
-	float  rotationW;
 	float  fov;
 
   public:
-	Camera(float3 position, float4 rotation, float fov) { 
+	Camera(float3 position, float3 rotation, float fov) { 
 		this->positionX	 = position.x;
 		this->positionY	 = position.y;
 		this->positionZ	 = position.z;
 		this->rotationX	 = rotation.x;
 		this->rotationY	 = rotation.y;
 		this->rotationZ	 = rotation.z;
-		this->rotationW  = rotation.w;
 		this->fov		 = fov;
 	}
 
 	HOST_DEVICE INLINE float3 getPosition() { return make_float3( positionX, positionY, positionZ ); };
 
-	HOST_DEVICE INLINE float4 getRotation() { return make_float4( rotationX, rotationY, rotationZ, rotationW ); };
+	HOST_DEVICE INLINE float3 getRotation() { return make_float3( rotationX, rotationY, rotationZ ); };
+
+	HOST_DEVICE float3 getRotatedVector( float3& vec ) {
+		float a = degToRad(rotationX);
+		float b = degToRad(rotationY);
+		float c = degToRad(rotationZ);
+
+		float a11 = cosf(b) * cosf(c);
+		float a12 = sinf(a) * sinf(b) * cosf(c) - cosf(a) * sinf(c);
+		float a13 = cosf(a) * sinf(b) * cosf(c) + sinf(a) * sinf(c);
+
+		float a21 = cosf(b) * sinf(c);
+		float a22 = sinf(a) * sinf(b) * sinf(c) + cosf(a) * cosf(c);
+		float a23 = cosf(a) * sinf(b) * sinf(c) - sinf(a) * cosf(c);
+
+		float a31 = -sinf(b);
+		float a32 = sinf(a) * cosf(b);
+		float a33 = cosf(a) * cosf(b);
+
+		return {
+			a11 * vec.x + a12 * vec.y + a13 * vec.z,
+			a21 * vec.x + a22 * vec.y + a23 * vec.z,
+			a31 * vec.x + a32 * vec.y + a33 * vec.z };
+	};
 
 	HOST_DEVICE INLINE float getFov() { return fov; };
 };
