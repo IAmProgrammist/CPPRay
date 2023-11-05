@@ -103,6 +103,13 @@ extern "C" __global__ void SceneIntersectionKernel(
 		hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
 		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
 		cosAngle				   = cos( hitNormal, d );
+		
+		baseColor = { 255, 255, 255, 0 };
+		pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
+		pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
+		pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
+		pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
+		return;
 	} else
 		baseColor = { 0, 0, 0, 0 };
 

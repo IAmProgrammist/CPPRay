@@ -100,7 +100,11 @@ class IRenderEngine
 
 	virtual void run( u8* data, int time ) = 0;
 
-	void loadModel( std::string& path, hiprtContext& ctxt, int sceneIndex = 0 );
+	void loadModel(
+		std::string&					   path,
+		hiprtContext&					   ctxt,
+		std::vector<hiprtFrameMatrix>&	   frames,
+		std::vector<hiprtTransformHeader>& srtHeaders );
 
 	void buildTraceKernelFromBitcode(
 		hiprtContext				   ctxt,

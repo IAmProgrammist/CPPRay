@@ -55,12 +55,33 @@ void checkHiprt( hiprtError res, const char* file, int line ) {
 	}
 }
 
-hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale) {
-	if ( rotation.x == 0 && rotation.y == 0 && rotation.z == 0 ) {
-		rotation.x = 1;
-		rotation.w = 0;
+hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) { 
+	Eigen::Matrix<float, 4, 4> aMat; 
+	Eigen::Matrix<float, 4, 4> bMat;
+	aMat.setIdentity();
+	bMat.setIdentity();
+	for ( int x = 0; x < 4; x++ ) {
+		for ( int y = 0; y < 4; y++ ) {
+			aMat( x, y ) = a.matrix[x][y];
+			bMat( x, y ) = b.matrix[x][y];
+		}
 	}
 
+	auto cross = aMat * bMat;
+	hiprtFrameMatrix result;
+	result.time = a.time;
+
+	// This is bad, but i couldn't make std::copy work
+	for ( int x = 0; x < 3; x++ ) {
+		for ( int y = 0; y < 4; y++ ) {
+			result.matrix[x][y] = cross( x, y );
+		}
+	}
+
+	return result;
+}
+
+hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale) {
 	hiprtFrameMatrix res;
 
 	auto Rraw = Eigen::Quaternionf(rotation.w, rotation.x, rotation.y, rotation.z).matrix();
@@ -91,11 +112,204 @@ hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale
 			res.matrix[i][j] = M( i, j );
 		}
 	}
+
+	res.time = 0;
 	
 	return res;
 }
 
-void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt, int sceneIndex ) {
+inline void loadNode(
+	tinygltf::Node	 node,
+	tinygltf::Model	 model,
+	std::vector<Geometry>& geomData,
+	hiprtContext& ctxt,
+	std::vector<hiprtGeometry>& geometries,
+	std::vector<hiprtFrameMatrix>& frames,
+	std::vector<hiprtTransformHeader>& srtHeaders,
+	hiprtFrameMatrix parentTransform = getSRTMatrix({0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1}) ) {
+
+	// Process transforms
+
+	// Compiler! Why don't u let me use ternary!? Now I have to suffer!
+	float3 translate;
+	if ( node.translation.size() == 0 )
+		translate = { 0, 0, 0 }; 
+	else 
+		translate = { 
+		static_cast<float>(node.translation[0]), 
+		static_cast<float>(node.translation[1]), 
+		static_cast<float>(node.translation[2]) };
+
+	float4 rotation;
+	if ( node.rotation.size() == 0 )
+		rotation = { 0, 0, 0, 0 };
+	else
+		rotation = {
+			static_cast<float>( node.rotation[0] ),
+			static_cast<float>( node.rotation[1] ),
+			static_cast<float>( node.rotation[2] ),
+			static_cast<float>( node.rotation[3] ) };
+
+	float3 scale;
+	if ( node.scale.size() == 0 )
+		scale = { 1, 1, 1 };
+	else
+		scale = {
+			static_cast<float>( node.scale[0] ), 
+			static_cast<float>( node.scale[1] ), 
+			static_cast<float>( node.scale[2] ) };
+
+	hiprtFrameMatrix localTransformations = parentTransform * getSRTMatrix( translate, rotation, scale );
+	localTransformations.time			  = 0;
+	frames.push_back( localTransformations );
+
+	// Process mesh
+	int meshIndex = node.mesh;
+	if ( meshIndex != -1 ) {
+		auto mesh = model.meshes[meshIndex];
+		
+		for ( auto meshPrimitive : mesh.primitives ) {
+			hiprtTriangleMeshPrimitive hipMesh;
+
+			// Load indices
+			hipMesh.triangleCount = model.accessors[meshPrimitive.indices].count / 3;
+			hipMesh.triangleStride = sizeof( hiprtInt3 );
+
+			auto indicesBufferView = model.bufferViews[model.accessors[meshPrimitive.indices].bufferView];
+
+			short* rawIndices = (short*)malloc(
+				hipMesh.triangleCount *
+				tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType ) * 3 );
+			memcpy(
+				rawIndices,
+				&model.buffers[indicesBufferView.buffer].data[0] + indicesBufferView.byteOffset,
+				hipMesh.triangleCount *
+					tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType ) * 3 );
+
+			int* indices = (int*)malloc( hipMesh.triangleCount * sizeof( hiprtInt3 ) );
+			for ( int i = 0; i < hipMesh.triangleCount * 3; i++ ) {
+				indices[i] = rawIndices[i];
+			}
+
+			geomData.push_back( { nullptr, nullptr, nullptr } );
+			CHECK_ORO( oroMalloc(
+				reinterpret_cast<oroDeviceptr*>( &hipMesh.triangleIndices ), hipMesh.triangleCount * hipMesh.triangleStride ) );
+			CHECK_ORO( oroMemcpyHtoD(
+				reinterpret_cast<oroDeviceptr>( hipMesh.triangleIndices ),
+				indices,
+				hipMesh.triangleCount * hipMesh.triangleStride ) );
+
+			CHECK_ORO( oroMalloc(
+				reinterpret_cast<oroDeviceptr*>( &( geomData.back().indices ) ),
+				hipMesh.triangleCount * hipMesh.triangleStride ) );
+			CHECK_ORO( oroMemcpyHtoD(
+				reinterpret_cast<oroDeviceptr>( geomData.back().indices ),
+				indices,
+				hipMesh.triangleCount * hipMesh.triangleStride ) );
+
+			free( rawIndices );
+			free( indices );
+
+			// Load vertices
+
+			auto accessorIter = meshPrimitive.attributes.find( "POSITION" );
+			if ( accessorIter == meshPrimitive.attributes.end() )
+				throw std::string( "Err: no POSITION attribute specified in primitive" );
+
+			int accessorIndex = ( *accessorIter ).second;
+
+			hipMesh.vertexCount	 = model.accessors[accessorIndex].count;
+			hipMesh.vertexStride = tinygltf::GetComponentSizeInBytes( model.accessors[accessorIndex].componentType ) * 3;
+
+			auto vertexBufferView = model.bufferViews[model.accessors[accessorIndex].bufferView];
+
+			hiprtFloat3* a = (hiprtFloat3*)malloc( hipMesh.vertexCount * hipMesh.vertexStride );
+			memcpy(
+				a,
+				&model.buffers[vertexBufferView.buffer].data[0] + vertexBufferView.byteOffset,
+				hipMesh.vertexCount * hipMesh.vertexStride );
+
+			CHECK_ORO(
+				oroMalloc( reinterpret_cast<oroDeviceptr*>( &hipMesh.vertices ), hipMesh.vertexCount * hipMesh.vertexStride ) );
+			CHECK_ORO( oroMemcpyHtoD(
+				reinterpret_cast<oroDeviceptr>( hipMesh.vertices ), a, hipMesh.vertexCount * hipMesh.vertexStride ) );
+
+			free( a );
+
+			CHECK_ORO( oroMalloc(
+				reinterpret_cast<oroDeviceptr*>( &( geomData.back().vertices ) ),
+				hipMesh.vertexCount * hipMesh.vertexStride ) );
+			CHECK_ORO( oroMemcpyHtoD(
+				reinterpret_cast<oroDeviceptr>( geomData.back().vertices ),
+				&model.buffers[vertexBufferView.buffer].data[0] + vertexBufferView.byteOffset,
+				hipMesh.vertexCount * hipMesh.vertexStride ) );
+
+			hiprtGeometryBuildInput geomInput;
+			geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
+			geomInput.triangleMesh.primitive = hipMesh;
+
+			size_t			  geomTempSize;
+			hiprtDevicePtr	  geomTemp;
+			hiprtBuildOptions options;
+			options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
+			CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
+			CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
+
+			hiprtGeometry geom;
+			CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
+			CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
+
+			geometries.push_back( geom );
+			hiprtTransformHeader header;
+			// TODO: if we will implement animations, this should be changed
+			header.frameCount = 1; 
+			header.frameIndex = frames.size() - 1;
+			srtHeaders.push_back( header );
+
+			CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
+
+			// Load vertex normals
+			{
+				auto accessorIter = meshPrimitive.attributes.find( "NORMAL" );
+				if ( accessorIter == meshPrimitive.attributes.end() )
+					throw std::string( "Err: no NORMAL attribute specified in primitive" );
+
+				int accessorIndex = ( *accessorIter ).second;
+
+				int normalCount	 = model.accessors[accessorIndex].count;
+				int normalStride = tinygltf::GetComponentSizeInBytes( model.accessors[accessorIndex].componentType ) * 3;
+
+				auto normalBufferView = model.bufferViews[model.accessors[accessorIndex].bufferView];
+
+				a = (hiprtFloat3*)malloc( normalCount * normalStride );
+				memcpy(
+					a,
+					&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
+					normalCount * normalStride );
+
+				CHECK_ORO(
+					oroMalloc( reinterpret_cast<oroDeviceptr*>( &( geomData.back().normals ) ), normalCount * normalStride ) );
+				CHECK_ORO(
+					oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( geomData.back().normals ), a, normalCount * normalStride ) );
+
+				free( a );
+			}
+
+		}
+	}
+
+	// TODO: Process camera
+
+	for ( auto nodeChild : node.children ) {
+		loadNode( model.nodes[nodeChild], model, geomData, ctxt, geometries, frames, srtHeaders, localTransformations );
+	}
+}
+
+void IRenderEngine::loadModel(
+	std::string&					   path,
+	hiprtContext&					   ctxt,
+	std::vector<hiprtFrameMatrix>&	   frames,
+	std::vector<hiprtTransformHeader>& srtHeaders ) {
 	tinygltf::Model	   model;
 	tinygltf::TinyGLTF loader;
 	std::string		   err;
@@ -109,212 +323,17 @@ void IRenderEngine::loadModel( std::string& path, hiprtContext& ctxt, int sceneI
 
 	if ( !ret ) throw std::runtime_error( "Failed to parse glTF" );
 
-#if MANUAL == 1
-	hiprtTriangleMeshPrimitive mesh;
-	mesh.triangleCount	  = 4;
-	mesh.triangleStride	  = sizeof( hiprtInt3 );
-	int triangleIndices[] = { 2, 1, 0, 0, 1, 3, 3, 2, 0, 1, 2, 3 };
-	CHECK_ORO(
-		oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.triangleIndices ), mesh.triangleCount * sizeof( hiprtInt3 ) ) );
-	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ), triangleIndices, mesh.triangleCount * sizeof( hiprtInt3 ) ) );
-
-	mesh.vertexCount	   = 4;
-	mesh.vertexStride	   = sizeof( hiprtFloat3 );
-	hiprtFloat3 vertices[] = { { 1.45, -0.3, -0.8 }, { -1, -1, -1 }, { -0.2, 1, -0.46 }, { 0.3, -0.44, 1 } };
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &mesh.vertices ), mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
-	CHECK_ORO(
-		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( mesh.vertices ), vertices, mesh.vertexCount * sizeof( hiprtFloat3 ) ) );
-
-	hiprtGeometryBuildInput geomInput;
-	geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
-	geomInput.triangleMesh.primitive = mesh;
-
-	size_t			  geomTempSize;
-	hiprtDevicePtr	  geomTemp;
-	hiprtBuildOptions options;
-	options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
-	CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
-
-	hiprtGeometry geom;
-	CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
-	CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
-
-	geometries.push_back( geom );
-
-	CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
-#else
-	Geometry* geomData	  = (Geometry*)malloc( sizeof( Geometry ) * model.meshes.size() );
-	int		  geomDataInd = 0;
+	std::vector<Geometry> geomData;
 
 	for ( auto nodeIndex : model.scenes[model.defaultScene].nodes ) {
+		auto rootNode = model.nodes[nodeIndex];
 
-		for ( auto mesh : model.meshes ) {
-
-			for ( auto meshPrimitive : mesh.primitives ) {
-				hiprtTriangleMeshPrimitive hipMesh;
-
-				// Load indices
-				hipMesh.triangleCount  = model.accessors[meshPrimitive.indices].count / 3;
-				hipMesh.triangleStride = sizeof( hiprtInt3 );
-				// tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType ) * 3;
-
-				auto indicesBufferView = model.bufferViews[model.accessors[meshPrimitive.indices].bufferView];
-
-				short* rawIndices = (short*)malloc(
-					hipMesh.triangleCount *
-					tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType ) * 3 );
-				memcpy(
-					rawIndices,
-					&model.buffers[indicesBufferView.buffer].data[0] + indicesBufferView.byteOffset,
-					hipMesh.triangleCount *
-						tinygltf::GetComponentSizeInBytes( model.accessors[meshPrimitive.indices].componentType ) * 3 );
-
-				int* indices = (int*)malloc( hipMesh.triangleCount * sizeof( hiprtInt3 ) );
-				for ( int i = 0; i < hipMesh.triangleCount * 3; i++ ) {
-					indices[i] = rawIndices[i];
-				}
-
-				CHECK_ORO( oroMalloc(
-					reinterpret_cast<oroDeviceptr*>( &hipMesh.triangleIndices ),
-					hipMesh.triangleCount * hipMesh.triangleStride ) );
-				CHECK_ORO( oroMemcpyHtoD(
-					reinterpret_cast<oroDeviceptr>( hipMesh.triangleIndices ),
-					indices,
-					hipMesh.triangleCount * hipMesh.triangleStride ) );
-				CHECK_ORO( oroMalloc(
-					reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].indices ),
-					hipMesh.triangleCount * hipMesh.triangleStride ) );
-				CHECK_ORO( oroMemcpyHtoD(
-					reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].indices ),
-					indices,
-					hipMesh.triangleCount * hipMesh.triangleStride ) );
-
-				free( rawIndices );
-				free( indices );
-
-				// Load vertices
-
-				auto accessorIter = meshPrimitive.attributes.find( "POSITION" );
-				if ( accessorIter == meshPrimitive.attributes.end() )
-					throw std::string( "Err: no POSITION attribute specified in primitive" );
-
-				int accessorIndex = ( *accessorIter ).second;
-
-				hipMesh.vertexCount	 = model.accessors[accessorIndex].count;
-				hipMesh.vertexStride = tinygltf::GetComponentSizeInBytes( model.accessors[accessorIndex].componentType ) * 3;
-
-				auto vertexBufferView = model.bufferViews[model.accessors[accessorIndex].bufferView];
-
-				hiprtFloat3* a = (hiprtFloat3*)malloc( hipMesh.vertexCount * hipMesh.vertexStride );
-				memcpy(
-					a,
-					&model.buffers[vertexBufferView.buffer].data[0] + vertexBufferView.byteOffset,
-					hipMesh.vertexCount * hipMesh.vertexStride );
-
-				for ( int i = 0; i < hipMesh.vertexCount; i++ ) {
-					std::swap( a[i].y, a[i].z );
-					a[i].y = -a[i].y;
-				}
-
-				CHECK_ORO( oroMalloc(
-					reinterpret_cast<oroDeviceptr*>( &hipMesh.vertices ), hipMesh.vertexCount * hipMesh.vertexStride ) );
-				CHECK_ORO( oroMemcpyHtoD(
-					reinterpret_cast<oroDeviceptr>( hipMesh.vertices ), a, hipMesh.vertexCount * hipMesh.vertexStride ) );
-
-				free( a );
-
-				CHECK_ORO( oroMalloc(
-					reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].vertices ),
-					hipMesh.vertexCount * hipMesh.vertexStride ) );
-				CHECK_ORO( oroMemcpyHtoD(
-					reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].vertices ),
-					&model.buffers[vertexBufferView.buffer].data[0] + vertexBufferView.byteOffset,
-					hipMesh.vertexCount * hipMesh.vertexStride ) );
-
-				hiprtGeometryBuildInput geomInput;
-				geomInput.type					 = hiprtPrimitiveTypeTriangleMesh;
-				geomInput.triangleMesh.primitive = hipMesh;
-
-				size_t			  geomTempSize;
-				hiprtDevicePtr	  geomTemp;
-				hiprtBuildOptions options;
-				options.buildFlags = hiprtBuildFlagBitPreferFastBuild;
-				CHECK_HIPRT( hiprtGetGeometryBuildTemporaryBufferSize( ctxt, geomInput, options, geomTempSize ) );
-				CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &geomTemp ), geomTempSize ) );
-
-				hiprtGeometry geom;
-				CHECK_HIPRT( hiprtCreateGeometry( ctxt, geomInput, options, geom ) );
-				CHECK_HIPRT( hiprtBuildGeometry( ctxt, hiprtBuildOperationBuild, geomInput, options, geomTemp, 0, geom ) );
-
-				geometries.push_back( geom );
-
-				CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( geomTemp ) ) );
-
-				// std::cout << std::endl;
-
-				// Load vertex normals
-				{
-					auto accessorIter = meshPrimitive.attributes.find( "NORMAL" );
-					if ( accessorIter == meshPrimitive.attributes.end() )
-						throw std::string( "Err: no NORMAL attribute specified in primitive" );
-
-					int accessorIndex = ( *accessorIter ).second;
-
-					int normalCount	 = model.accessors[accessorIndex].count;
-					int normalStride = tinygltf::GetComponentSizeInBytes( model.accessors[accessorIndex].componentType ) * 3;
-
-					auto normalBufferView = model.bufferViews[model.accessors[accessorIndex].bufferView];
-
-					/// AAAAAAAAAAAAAAAAAAAAAAAA
-					a = (hiprtFloat3*)malloc( normalCount * normalStride );
-					memcpy(
-						a,
-						&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
-						normalCount * normalStride );
-
-					for ( int i = 0; i < normalCount; i++ ) {
-						std::swap( a[i].y, a[i].z );
-						a[i].y = -a[i].y;
-					}
-
-					CHECK_ORO( oroMalloc(
-						reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].normals ), normalCount * normalStride ) );
-					CHECK_ORO( oroMemcpyHtoD(
-						reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].normals ), a, normalCount * normalStride ) );
-
-					free( a );
-					/// AAAAAAAAAAAAAAAAAAAAAAAA
-
-					// CHECK_ORO( oroMalloc(
-					//	reinterpret_cast<oroDeviceptr*>( &geomData[geomDataInd].normals ), normalCount * normalStride ) );
-					// CHECK_ORO( oroMemcpyHtoD(
-					//	reinterpret_cast<oroDeviceptr>( geomData[geomDataInd].normals ),
-					//	&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
-					//	normalCount * normalStride ) );
-
-					// hiprtFloat3* b = (hiprtFloat3*)malloc( normalCount * normalStride );
-					// memcpy(
-					//	b,
-					//	&model.buffers[normalBufferView.buffer].data[0] + normalBufferView.byteOffset,
-					//	normalCount * normalStride );
-
-					// for ( int i = 0; i < hipMesh.vertexCount; i++ ) {
-					// std::cout << "(" << b[i].x << ", " << b[i].y << ", " << b[i].z << ") "
-					//		  << "(" << a[i].x << ", " << a[i].y << ", " << a[i].z << ")" << std::endl;
-					//}
-					// free( b );
-				}
-
-				geomDataInd++;
-			}
-		}
+		loadNode(rootNode, model, geomData, ctxt, geometries, frames, srtHeaders);
 	}
 
-	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuGeometry ), sizeof( Geometry ) * geomDataInd ) );
-	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( gpuGeometry ), geomData, sizeof( Geometry ) * geomDataInd ) );
-#endif
+	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuGeometry ), sizeof( Geometry ) * geomData.size() ) );
+	CHECK_ORO(
+		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( gpuGeometry ), &(geomData[0]), sizeof( Geometry ) * geomData.size() ) );
 
 	textureAmount			 = 1;
 	Texture texturesOrigin[] = { createTexture( ctxt, { 255, 0, 0, 0 } ) };
@@ -359,7 +378,9 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
-	loadModel( std::string( "sm.gltf" ), ctxt );
+	std::vector<hiprtFrameMatrix> frames;
+	std::vector<hiprtTransformHeader> srtHeaders;
+	loadModel( std::string( "testmodels/monkeyband.gltf" ), ctxt, frames, srtHeaders );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
@@ -373,32 +394,24 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 		sizeof( hiprtDevicePtr ) * sceneInput.instanceCount ) );
 
 	sceneInput.frameType   = hiprtFrameTypeMatrix;
-	hiprtFrameMatrix frame = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 1, 0 }, { 1, 1, 1 } );
-	//hiprtFrameSRT frame;
-	//frame.rotation			 = { 1, 0, 0, 10 };
-	//frame.scale				 = { 1, 1, 1 };
-	//frame.translation		 = { 0, 0, 0 };
-	constexpr int frameCount = 1;
-
-	frame.time				 = 0;
+	//hiprtFrameMatrix frame = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 1, 0 }, { 1, 1, 1 } );
+	//frame.time				 = 0;
+	int frameCount = frames.size();
 
 	CHECK_ORO(
-		oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceFrames ), sizeof( frame ) * frameCount ) );
+		oroMalloc( reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceFrames ), sizeof( hiprtFrameMatrix ) * frameCount ) );
 	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ), &frame, sizeof( frame ) * frameCount ) );
+		reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ), &frames[0], sizeof( hiprtFrameMatrix ) * frameCount ) );
 
 	sceneInput.frameCount = frameCount;
 
-	/*hiprtTransformHeader headers[1];
-	 headers[0].frameIndex = 0;
-	headers[0].frameCount = frameCount;
 	CHECK_ORO( oroMalloc(
 		reinterpret_cast<oroDeviceptr*>( &sceneInput.instanceTransformHeaders ),
-		sceneInput.instanceCount * sizeof( hiprtTransformHeader ) ) );
+		srtHeaders.size() * sizeof( hiprtTransformHeader ) ) );
 	CHECK_ORO( oroMemcpyHtoD(
 		reinterpret_cast<oroDeviceptr>( sceneInput.instanceTransformHeaders ),
-		headers,
-		sceneInput.instanceCount * sizeof( hiprtTransformHeader ) ) );*/
+		&srtHeaders[0],
+		srtHeaders.size() * sizeof( hiprtTransformHeader ) ) );
 
 	size_t		   sceneTempSize;
 	hiprtDevicePtr sceneTemp;
