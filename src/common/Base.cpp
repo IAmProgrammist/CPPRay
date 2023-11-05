@@ -409,18 +409,23 @@ void IRenderEngine::loadModel(
 	CHECK_ORO(
 		oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuLights.spLights ), gpuLights.spLightsAmount * sizeof( SpotLight ) ) );
 
-	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( gpuLights.dirLights ),
-		&lights.dirLights[0],
-		gpuLights.dirLightsAmount * sizeof( DirectionalLight ) ) );
-	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( gpuLights.pointLights ),
-		&lights.pointLights[0],
-		gpuLights.pointLightsAmount * sizeof( PointLight ) ) );
-	CHECK_ORO( oroMemcpyHtoD(
-		reinterpret_cast<oroDeviceptr>( gpuLights.spLights ),
-		&lights.spLights[0],
-		gpuLights.spLightsAmount * sizeof( SpotLight ) ) );
+	if (gpuLights.dirLightsAmount != 0)
+		CHECK_ORO( oroMemcpyHtoD(
+			reinterpret_cast<oroDeviceptr>( gpuLights.dirLights ),
+			&lights.dirLights[0],
+			gpuLights.dirLightsAmount * sizeof( DirectionalLight ) ) );
+
+	if ( gpuLights.pointLightsAmount != 0 )
+		CHECK_ORO( oroMemcpyHtoD(
+			reinterpret_cast<oroDeviceptr>( gpuLights.pointLights ),
+			&lights.pointLights[0],
+			gpuLights.pointLightsAmount * sizeof( PointLight ) ) );
+
+	if ( gpuLights.spLightsAmount != 0 )
+		CHECK_ORO( oroMemcpyHtoD(
+			reinterpret_cast<oroDeviceptr>( gpuLights.spLights ),
+			&lights.spLights[0],
+			gpuLights.spLightsAmount * sizeof( SpotLight ) ) );
 }
 
 void IRenderEngine::init( int deviceIndex, int width, int height ) {
@@ -450,7 +455,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	std::vector<hiprtFrameMatrix>	  frames;
 	std::vector<hiprtTransformHeader> srtHeaders;
-	loadModel( std::string( "testmodels/default.gltf" ), ctxt, frames, srtHeaders );
+	loadModel( std::string( "testmodels/lightsup.gltf" ), ctxt, frames, srtHeaders );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
