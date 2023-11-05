@@ -49,6 +49,7 @@ extern "C" __global__ void SceneIntersectionKernel(
 	Texture*   textures,
 	Material*  materials,
 	int*	   materialIndices,
+	hipLights  lights,
 	Camera	   cam,
 	int		   frameTime,
 	float3* debug) {
@@ -59,21 +60,21 @@ extern "C" __global__ void SceneIntersectionKernel(
 	float3 o, d;
 
 	float ar = static_cast<float>( res.x ) / res.y;
-	float h	 = 2 / ( 1 + ar );
-	float w	 = 2 - h;
+	float sh	 = 2 / ( 1 + ar );
+	float sw	 = 2 - sh;
 
 	if ( camType == CAMERA_TYPE_PERSPECTIVE ) {
 		o = cam.getPosition();
 		d = {
-			( x / static_cast<float>( res.x ) ) * w - w / 2,
-			-( ( y / static_cast<float>( res.y ) ) * h - h / 2 ),
-			( -w / 2 ) / tanf( degToRad( cam.getFov() / 2 ) ) };
+			( x / static_cast<float>( res.x ) ) * sw - sw / 2,
+			-( ( y / static_cast<float>( res.y ) ) * sh - sh / 2 ),
+			( -sw / 2 ) / tanf( degToRad( cam.getFov() / 2 ) ) };
 		
 		d = cam.getRotatedVector( d );
 	} else if ( camType == CAMERA_TYPE_ORTOGRAPHIC ) {
 		o = {
-			cam.getPosition().x + ( x / static_cast<float>( res.x ) ) * w - w / 2,
-			cam.getPosition().y - ( ( y / static_cast<float>( res.y ) ) * h - h / 2 ),
+			cam.getPosition().x + ( x / static_cast<float>( res.x ) ) * sw - sw / 2,
+			cam.getPosition().y - ( ( y / static_cast<float>( res.y ) ) * sh - sh / 2 ),
 			cam.getPosition().z };
 		d = { 0.0f, 0.0f, -1 };
 		// TODO: доделать нормальный поворот
@@ -93,28 +94,29 @@ extern "C" __global__ void SceneIntersectionKernel(
 	int pixelIndex = x + y * res.x;
 	float cosAngle = 1;
 	u84 baseColor;
-	if ( hit.hasHit() ) {
-		hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
-		hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
-		hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
-		float		u		  = hit.uv.x;
-		float		v		  = hit.uv.y;
-		float		w		  = 1 - hit.uv.x - hit.uv.y;
-		hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
-		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-		cosAngle				   = cos( hitNormal, d );
-		
-		baseColor = { 255, 255, 255, 0 };
-		pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
-		pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
-		pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
-		pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
-		return;
-	} else
-		baseColor = { 0, 0, 0, 0 };
 
-	pixels[pixelIndex * 4 + 0] = max( baseColor.r * cosAngle, 0 );
-	pixels[pixelIndex * 4 + 1] = max( baseColor.g * cosAngle, 0 );
-	pixels[pixelIndex * 4 + 2] = max( baseColor.b * cosAngle, 0 );
-	pixels[pixelIndex * 4 + 3] = max( baseColor.a * cosAngle, 0 );
+	if ( !hit.hasHit() ) {
+		pixels[pixelIndex * 4 + 0] = max( 0, 0 );
+		pixels[pixelIndex * 4 + 1] = max( 0, 0 );
+		pixels[pixelIndex * 4 + 2] = max( 0, 0 );
+		pixels[pixelIndex * 4 + 3] = max( 0, 0 );
+	
+		return;
+	}
+
+	hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
+	hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
+	hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
+	float		u		  = hit.uv.x;
+	float		v		  = hit.uv.y;
+	float		w		  = 1 - hit.uv.x - hit.uv.y;
+	hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
+	baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
+	cosAngle				   = cos( hitNormal, d );
+		
+	baseColor = { 255, 255, 255, 0 };
+	pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
+	pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
+	pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
+	pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
 }

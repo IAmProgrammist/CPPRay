@@ -23,9 +23,10 @@
 #include "Base.h"
 
 #include "Common.h"
-#include <assert.h>
-#include <tiny_gltf.h>
 #include <Eigen/Geometry>
+#include <assert.h>
+#include <json.hpp>
+#include <tiny_gltf.h>
 
 #define MANUAL 0
 
@@ -55,8 +56,8 @@ void checkHiprt( hiprtError res, const char* file, int line ) {
 	}
 }
 
-hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) { 
-	Eigen::Matrix<float, 4, 4> aMat; 
+hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) {
+	Eigen::Matrix<float, 4, 4> aMat;
 	Eigen::Matrix<float, 4, 4> bMat;
 	aMat.setIdentity();
 	bMat.setIdentity();
@@ -67,7 +68,7 @@ hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) {
 		}
 	}
 
-	auto cross = aMat * bMat;
+	auto			 cross = aMat * bMat;
 	hiprtFrameMatrix result;
 	result.time = a.time;
 
@@ -81,10 +82,16 @@ hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) {
 	return result;
 }
 
-hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale) {
+struct Lights {
+	std::vector<DirectionalLight> dirLights;
+	std::vector<PointLight>		  pointLights;
+	std::vector<SpotLight>		  spLights;
+};
+
+hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale ) {
 	hiprtFrameMatrix res;
 
-	auto Rraw = Eigen::Quaternionf(rotation.w, rotation.x, rotation.y, rotation.z).matrix();
+	auto			Rraw = Eigen::Quaternionf( rotation.w, rotation.x, rotation.y, rotation.z ).matrix();
 	Eigen::Matrix4f R;
 	R.setIdentity();
 	for ( int i = 0; i < 3; i++ ) {
@@ -114,31 +121,31 @@ hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale
 	}
 
 	res.time = 0;
-	
+
 	return res;
 }
 
 inline void loadNode(
-	tinygltf::Node	 node,
-	tinygltf::Model	 model,
-	std::vector<Geometry>& geomData,
-	hiprtContext& ctxt,
-	std::vector<hiprtGeometry>& geometries,
-	std::vector<hiprtFrameMatrix>& frames,
+	tinygltf::Node					   node,
+	tinygltf::Model					   model,
+	std::vector<Geometry>&			   geomData,
+	hiprtContext&					   ctxt,
+	std::vector<hiprtGeometry>&		   geometries,
+	std::vector<hiprtFrameMatrix>&	   frames,
 	std::vector<hiprtTransformHeader>& srtHeaders,
-	hiprtFrameMatrix parentTransform = getSRTMatrix({0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1}) ) {
+	Lights&							   lights,
+	hiprtFrameMatrix				   parentTransform = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1 } ) ) {
 
 	// Process transforms
-
 	// Compiler! Why don't u let me use ternary!? Now I have to suffer!
 	float3 translate;
 	if ( node.translation.size() == 0 )
-		translate = { 0, 0, 0 }; 
-	else 
-		translate = { 
-		static_cast<float>(node.translation[0]), 
-		static_cast<float>(node.translation[1]), 
-		static_cast<float>(node.translation[2]) };
+		translate = { 0, 0, 0 };
+	else
+		translate = {
+			static_cast<float>( node.translation[0] ),
+			static_cast<float>( node.translation[1] ),
+			static_cast<float>( node.translation[2] ) };
 
 	float4 rotation;
 	if ( node.rotation.size() == 0 )
@@ -155,9 +162,7 @@ inline void loadNode(
 		scale = { 1, 1, 1 };
 	else
 		scale = {
-			static_cast<float>( node.scale[0] ), 
-			static_cast<float>( node.scale[1] ), 
-			static_cast<float>( node.scale[2] ) };
+			static_cast<float>( node.scale[0] ), static_cast<float>( node.scale[1] ), static_cast<float>( node.scale[2] ) };
 
 	hiprtFrameMatrix localTransformations = parentTransform * getSRTMatrix( translate, rotation, scale );
 	localTransformations.time			  = 0;
@@ -167,12 +172,12 @@ inline void loadNode(
 	int meshIndex = node.mesh;
 	if ( meshIndex != -1 ) {
 		auto mesh = model.meshes[meshIndex];
-		
+
 		for ( auto meshPrimitive : mesh.primitives ) {
 			hiprtTriangleMeshPrimitive hipMesh;
 
 			// Load indices
-			hipMesh.triangleCount = model.accessors[meshPrimitive.indices].count / 3;
+			hipMesh.triangleCount  = model.accessors[meshPrimitive.indices].count / 3;
 			hipMesh.triangleStride = sizeof( hiprtInt3 );
 
 			auto indicesBufferView = model.bufferViews[model.accessors[meshPrimitive.indices].bufferView];
@@ -262,7 +267,7 @@ inline void loadNode(
 			geometries.push_back( geom );
 			hiprtTransformHeader header;
 			// TODO: if we will implement animations, this should be changed
-			header.frameCount = 1; 
+			header.frameCount = 1;
 			header.frameIndex = frames.size() - 1;
 			srtHeaders.push_back( header );
 
@@ -294,14 +299,52 @@ inline void loadNode(
 
 				free( a );
 			}
-
 		}
+	}
+
+	// Process lights
+	try {
+		nlohmann::json nodeExtensions = nlohmann::json::parse( node.extensions_json_string );
+		if ( nodeExtensions.contains( "KHR_lights_punctual" ) && nodeExtensions["KHR_lights_punctual"].contains( "light" ) ) {
+
+			int lightIndex = nodeExtensions["KHR_lights_punctual"]["light"];
+
+			nlohmann::json extensions = nlohmann::json::parse( model.extensions_json_string );
+			auto		   light	  = extensions["KHR_lights_punctual"]["lights"][lightIndex];
+
+			if ( light["type"] == "point" ) {
+				PointLight newLight;
+				SET_LIGHT_TRANSLATE( newLight, localTransformations );
+				SET_LIGHT_PROPERTIES( newLight, light );
+
+				lights.pointLights.push_back( newLight );
+			} else if ( light["type"] == "directional" ) {
+				DirectionalLight newLight;
+				SET_LIGHT_TRANSLATE( newLight, localTransformations );
+				SET_LIGHT_DIRECTION( newLight, localTransformations );
+				SET_LIGHT_PROPERTIES( newLight, light );
+
+				lights.dirLights.push_back( newLight );
+			} else if ( light["type"] == "spot" ) {
+				SpotLight newLight;
+				SET_LIGHT_TRANSLATE( newLight, localTransformations );
+				SET_LIGHT_DIRECTION( newLight, localTransformations );
+				SET_LIGHT_PROPERTIES( newLight, light );
+
+				if ( light["spot"].contains( "innerConeAngle" ) ) newLight.innerConeAngle = light["spot"]["innerConeAngle"];
+				if ( light["spot"].contains( "outerConeAngle" ) ) newLight.outerConeAngle = light["spot"]["outerConeAngle"];
+
+				lights.spLights.push_back( newLight );
+			}
+		}
+	} catch ( nlohmann::json::parse_error& ignored ) {
+		// No extensions provided.
 	}
 
 	// TODO: Process camera
 
 	for ( auto nodeChild : node.children ) {
-		loadNode( model.nodes[nodeChild], model, geomData, ctxt, geometries, frames, srtHeaders, localTransformations );
+		loadNode( model.nodes[nodeChild], model, geomData, ctxt, geometries, frames, srtHeaders, lights, localTransformations );
 	}
 }
 
@@ -309,11 +352,13 @@ void IRenderEngine::loadModel(
 	std::string&					   path,
 	hiprtContext&					   ctxt,
 	std::vector<hiprtFrameMatrix>&	   frames,
-	std::vector<hiprtTransformHeader>& srtHeaders ) {
+	std::vector<hiprtTransformHeader>& srtHeaders) {
 	tinygltf::Model	   model;
 	tinygltf::TinyGLTF loader;
-	std::string		   err;
-	std::string		   warn;
+	// We will parse extensions manually, so objects of gLTF will keep JSON string to parse.
+	loader.SetStoreOriginalJSONForExtrasAndExtensions( true );
+	std::string err;
+	std::string warn;
 
 	bool ret = loader.LoadASCIIFromFile( &model, &err, &warn, path );
 
@@ -324,16 +369,17 @@ void IRenderEngine::loadModel(
 	if ( !ret ) throw std::runtime_error( "Failed to parse glTF" );
 
 	std::vector<Geometry> geomData;
+	Lights				  lights;
 
 	for ( auto nodeIndex : model.scenes[model.defaultScene].nodes ) {
 		auto rootNode = model.nodes[nodeIndex];
 
-		loadNode(rootNode, model, geomData, ctxt, geometries, frames, srtHeaders);
+		loadNode( rootNode, model, geomData, ctxt, geometries, frames, srtHeaders, lights );
 	}
 
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuGeometry ), sizeof( Geometry ) * geomData.size() ) );
-	CHECK_ORO(
-		oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( gpuGeometry ), &(geomData[0]), sizeof( Geometry ) * geomData.size() ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( gpuGeometry ), &( geomData[0] ), sizeof( Geometry ) * geomData.size() ) );
 
 	textureAmount			 = 1;
 	Texture texturesOrigin[] = { createTexture( ctxt, { 255, 0, 0, 0 } ) };
@@ -351,6 +397,30 @@ void IRenderEngine::loadModel(
 	int materialInd[geomAmount] = { 0, 0 };
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &materialIndices ), geomAmount * sizeof( int ) ) );
 	CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( materialIndices ), materialInd, geomAmount * sizeof( int ) ) );
+
+	gpuLights.dirLightsAmount	= lights.dirLights.size();
+	gpuLights.pointLightsAmount = lights.pointLights.size();
+	gpuLights.spLightsAmount	= lights.spLights.size();
+
+	CHECK_ORO( oroMalloc(
+		reinterpret_cast<oroDeviceptr*>( &gpuLights.dirLights ), gpuLights.dirLightsAmount * sizeof( DirectionalLight ) ) );
+	CHECK_ORO( oroMalloc(
+		reinterpret_cast<oroDeviceptr*>( &gpuLights.pointLights ), gpuLights.pointLightsAmount * sizeof( PointLight ) ) );
+	CHECK_ORO(
+		oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuLights.spLights ), gpuLights.spLightsAmount * sizeof( SpotLight ) ) );
+
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( gpuLights.dirLights ),
+		&lights.dirLights[0],
+		gpuLights.dirLightsAmount * sizeof( DirectionalLight ) ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( gpuLights.pointLights ),
+		&lights.pointLights[0],
+		gpuLights.pointLightsAmount * sizeof( PointLight ) ) );
+	CHECK_ORO( oroMemcpyHtoD(
+		reinterpret_cast<oroDeviceptr>( gpuLights.spLights ),
+		&lights.spLights[0],
+		gpuLights.spLightsAmount * sizeof( SpotLight ) ) );
 }
 
 void IRenderEngine::init( int deviceIndex, int width, int height ) {
@@ -378,9 +448,9 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	CHECK_HIPRT( hiprtCreateContext( HIPRT_API_VERSION, m_ctxtInput, ctxt ) );
 
-	std::vector<hiprtFrameMatrix> frames;
+	std::vector<hiprtFrameMatrix>	  frames;
 	std::vector<hiprtTransformHeader> srtHeaders;
-	loadModel( std::string( "testmodels/monkeyband.gltf" ), ctxt, frames, srtHeaders );
+	loadModel( std::string( "testmodels/lightsup.gltf" ), ctxt, frames, srtHeaders );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
@@ -393,9 +463,9 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 		&geometries[0],
 		sizeof( hiprtDevicePtr ) * sceneInput.instanceCount ) );
 
-	sceneInput.frameType   = hiprtFrameTypeMatrix;
-	//hiprtFrameMatrix frame = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 1, 0 }, { 1, 1, 1 } );
-	//frame.time				 = 0;
+	sceneInput.frameType = hiprtFrameTypeMatrix;
+	// hiprtFrameMatrix frame = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 1, 0 }, { 1, 1, 1 } );
+	// frame.time				 = 0;
 	int frameCount = frames.size();
 
 	CHECK_ORO(

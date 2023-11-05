@@ -944,3 +944,57 @@ struct Geometry {
 	float3* vertices;
 	float3* normals;
 };
+
+#define SET_LIGHT_TRANSLATE(light, transform)\
+light.o = { transform.matrix[0][3], transform.matrix[1][3], transform.matrix[2][3] };
+
+#define SET_LIGHT_DIRECTION(light, transform)\
+light.d = { \
+		transform.matrix[0][0] * light.d.x +\
+		transform.matrix[0][1] * light.d.y +\
+		transform.matrix[0][2] * light.d.z, \
+		transform.matrix[1][0] * light.d.x + \
+		transform.matrix[1][1] * light.d.y +\
+		transform.matrix[1][2] * light.d.z,\
+		transform.matrix[2][0] * light.d.x + \
+		transform.matrix[2][1] * light.d.y +\
+		transform.matrix[2][2] * light.d.z };
+
+#define SET_LIGHT_PROPERTIES(light, jsLight)\
+if ( jsLight.contains( "color" ) )     light.color =   { jsLight["color"][0], jsLight["color"][1], jsLight["color"][2] }; \
+if ( jsLight.contains( "intensity" ) ) light.intensity = jsLight["intensity"];                                        \
+if ( jsLight.contains( "range" ) )     light.range =     jsLight["range"];
+
+struct DirectionalLight {
+	float3 o		 = { 0, 0, 0 };
+	float3 d		 = { 0, 0, -1 };
+	float3 color	 = { 1.0, 1.0, 1.0 };
+	float  intensity = 1.0;
+	float  range	 = 0xffffffff;
+};
+
+struct PointLight {
+	float3 o		 = { 0, 0, 0 };
+	float3 color = {1.0, 1.0, 1.0};
+	float  intensity = 1.0;
+	float  range	 = 0xffffffff;
+};
+
+struct SpotLight {
+	float3 o		 = { 0, 0, 0 };
+	float3 d		 = { 0, 0, -1 };
+	float3 color	 = { 1.0, 1.0, 1.0 };
+	float  intensity = 1.0;
+	float  range	 = 0xffffffff;
+	float  innerConeAngle = 0;
+	float  outerConeAngle = PI / 4;
+};
+
+struct hipLights {
+	DirectionalLight* dirLights;
+	int				  dirLightsAmount;
+	PointLight*		  pointLights;
+	int				  pointLightsAmount;
+	SpotLight*		  spLights;
+	int				  spLightsAmount;
+};

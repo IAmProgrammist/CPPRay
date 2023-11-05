@@ -49,7 +49,18 @@ class RenderEngine : public IRenderEngine {
 		//Camera cam( make_float3( 0, 0, 10), make_float3( 0, 0, 0), 24 );
 		//float3 vec	  = {0, 1, 1};
 		//vec			 = cam.getRotatedVector( vec );
-		void*  args[] = { &scene, &pixels, &m_res, &gpuGeometry, &textures, &materials, &materialIndices, &cam, &time, &gpuDebug };
+		void* args[] = {
+			&scene,
+			&pixels,
+			&m_res,
+			&gpuGeometry,
+			&textures,
+			&materials,
+			&materialIndices,
+			&gpuLights,
+			&cam,
+			&time,
+			&gpuDebug };
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
@@ -75,16 +86,13 @@ void resize( int w, int h );
 void init();
 
 void resize( int w, int h ) {
-	w = width, h = height;
-	//renderEngine.renderingMutex.lock();
-	width = w, height = h;
-	//renderEngine.onResize( w, h );
-	glutReshapeWindow( width, height );
-	//data = (u8*)realloc( data, width * height * 4 );
-	//renderEngine.renderingMutex.unlock();
+	glViewport( 0, 0, w, h);
+	glutReshapeWindow( w, h );
+	glutPostRedisplay();
 }
 
 void display() {
+
 	glClearColor( 0, 0, 0, 0.0 );
 	glClear( GL_COLOR_BUFFER_BIT ); // clear display window
 
@@ -135,9 +143,6 @@ int main( int argc, char** argv ) {
 		{
 			renderEngine.run( data, timeee % 360 );
 			glutPostRedisplay();
-
-			timeee++;
-			Sleep( 50 );
 		}
 	} );
 

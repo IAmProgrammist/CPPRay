@@ -63,6 +63,14 @@ class IRenderEngine
 	int*					   materialIndices;
 	int						   textureAmount;
 	std::vector<hiprtGeometry> geometries;
+	hipLights				   gpuLights;
+
+	PointLight* pointLights;
+	int			pointLightsAmount = 0;
+	
+	SpotLight* spLights;
+	int		   spLightsAmount = 0;
+
 
 	virtual ~IRenderEngine()
 	{
