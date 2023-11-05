@@ -35,7 +35,7 @@ constexpr float Pi	  = 3.14159265358979323846f;
 constexpr float TwoPi = 2.0f * Pi;
 
 __device__ u84 getAt( hiprtFloat2& uv, Texture& texture ) {
-	// TODO: изменить алгоритм подбора пикселя на линейную фильтрацию.
+	// TODO: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 	hiprtInt2 rootIndex = {
 		( (int)( uv.x * texture.size ) ) % texture.size, ( (int)( ( 1 - uv.y ) * texture.size ) ) % texture.size };
 	return texture.data[rootIndex.x + rootIndex.y * texture.size];
@@ -77,7 +77,7 @@ extern "C" __global__ void SceneIntersectionKernel(
 			cam.getPosition().y - ( ( y / static_cast<float>( res.y ) ) * sh - sh / 2 ),
 			cam.getPosition().z };
 		d = { 0.0f, 0.0f, -1 };
-		// TODO: доделать нормальный поворот
+		// TODO: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		//auto phi = cam.getRotation().w;
 		//auto k	 = make_hiprtFloat3( cam.getRotation().x, cam.getRotation().y, cam.getRotation().z );
 		//d		 = d * cos( phi ) + cross( k, d ) * sin( phi ) + k * ( k * d ) * ( 1 - cos( phi ) );
@@ -94,29 +94,28 @@ extern "C" __global__ void SceneIntersectionKernel(
 	int pixelIndex = x + y * res.x;
 	float cosAngle = 1;
 	u84 baseColor;
-
-	if ( !hit.hasHit() ) {
-		pixels[pixelIndex * 4 + 0] = max( 0, 0 );
-		pixels[pixelIndex * 4 + 1] = max( 0, 0 );
-		pixels[pixelIndex * 4 + 2] = max( 0, 0 );
-		pixels[pixelIndex * 4 + 3] = max( 0, 0 );
-	
-		return;
-	}
-
-	hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
-	hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
-	hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
-	float		u		  = hit.uv.x;
-	float		v		  = hit.uv.y;
-	float		w		  = 1 - hit.uv.x - hit.uv.y;
-	hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
-	baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-	cosAngle				   = cos( hitNormal, d );
+	if ( hit.hasHit() ) {
+		hiprtFloat3 N1		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].x];
+		hiprtFloat3 N2		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].y];
+		hiprtFloat3 N3		  = geometry[hit.instanceID].normals[geometry[hit.instanceID].indices[hit.primID].z];
+		float		u		  = hit.uv.x;
+		float		v		  = hit.uv.y;
+		float		w		  = 1 - hit.uv.x - hit.uv.y;
+		hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
+		baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
+		cosAngle				   = cos( hitNormal, d );
 		
-	baseColor = { 255, 255, 255, 0 };
-	pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
-	pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
-	pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
-	pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
+		baseColor = { 255, 255, 255, 255 };
+		pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
+		pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
+		pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
+		pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
+		return;
+	} else
+		baseColor = { 0, 0, 0, 255 };
+
+	pixels[pixelIndex * 4 + 0] = max( baseColor.r * cosAngle, 0 );
+	pixels[pixelIndex * 4 + 1] = max( baseColor.g * cosAngle, 0 );
+	pixels[pixelIndex * 4 + 2] = max( baseColor.b * cosAngle, 0 );
+	pixels[pixelIndex * 4 + 3] = baseColor.a;
 }
