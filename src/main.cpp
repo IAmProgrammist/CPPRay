@@ -27,7 +27,8 @@
 
 #include "common/Base.h"
 #include "common/Common.h"
-#include <gl/freeglut.h>
+
+#include <SFML/Graphics.hpp>
 
 #include <future>
 #include <iostream>
@@ -70,78 +71,42 @@ int			 width = 1280, height = 720;
 u8*			 data;
 RenderEngine renderEngine;
 
-void display();
-void resize( int w, int h );
-void init();
-
-void resize( int w, int h ) {
-	w = width, h = height;
-	//renderEngine.renderingMutex.lock();
-	width = w, height = h;
-	//renderEngine.onResize( w, h );
-	glutReshapeWindow( width, height );
-	//data = (u8*)realloc( data, width * height * 4 );
-	//renderEngine.renderingMutex.unlock();
-}
-
-void display() {
-	glClearColor( 0, 0, 0, 0.0 );
-	glClear( GL_COLOR_BUFFER_BIT ); // clear display window
-
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	gluOrtho2D( 0.0, width, 0.0, height);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-
-	glColor3f( 1.0, 1.0, 1.0 );
-
-	glPointSize( 1.0f );
-	glBegin( GL_POINTS );
-	for ( int w = 0; w < width; w++ ) {
-		for ( int h = 0; h < height; h++ ) {
-			glColor4ub(
-				data[( w + width * h ) * 4],
-				data[( w + width * h ) * 4 + 1],
-				data[( w + width * h ) * 4 + 2],
-				data[( w + width * h ) * 4 + 3] );
-			glVertex2i( w, height - h );
-
-		}
-	}
-	glEnd();
-	glFlush();
-}
-
-// Program to create an empty Widdow
-void init() {
-	glutInitDisplayMode( GLUT_RGB ); // Line C
-	glutInitWindowSize( width, height );
-	glutCreateWindow( "CPPRay" );
-}
-
-int main( int argc, char** argv ) {
+int main() {
 	data = (u8*)malloc( width * height * 4 );
 	renderEngine.init( 0, width, height );
-
-	glutInit( &argc, argv ); // Line A
-	init();					 // Line B
-	glutReshapeFunc( resize );
-	glutDisplayFunc( display );
+	renderEngine.run( data, timeee % 360 );
 
 	auto future1 = std::async( std::launch::async, [] {
-		//while ( true )
+		// while ( true )
 		{
 			renderEngine.run( data, timeee % 360 );
-			glutPostRedisplay();
-
-			timeee++;
-			Sleep( 50 );
 		}
 	} );
 
-	glutMainLoop();
+
+	sf::RenderWindow window( sf::VideoMode( width, height ), "CPPRay" );
+
+	while ( window.isOpen() ) {
+		sf::Event event;
+		while ( window.pollEvent( event ) ) {
+			if ( event.type == sf::Event::Closed ) window.close();
+		}
+
+		sf::Image image;
+		image.create( width, height, data);
+
+		window.clear();
+
+		sf::Texture texture;
+		texture.loadFromImage( image );
+
+		sf::Sprite sprite;
+		sprite.setTexture( texture, true );
+
+		window.draw( sprite );
+
+		window.display();
+	}
 
 	return 0;
 }

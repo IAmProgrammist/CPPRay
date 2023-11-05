@@ -380,7 +380,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	std::vector<hiprtFrameMatrix> frames;
 	std::vector<hiprtTransformHeader> srtHeaders;
-	loadModel( std::string( "testmodels/monkeyband.gltf" ), ctxt, frames, srtHeaders );
+	loadModel( std::string( "testmodels/default.gltf" ), ctxt, frames, srtHeaders );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
