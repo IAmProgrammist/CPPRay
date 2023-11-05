@@ -100,7 +100,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>__WINDOWS__;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;..\..\contrib\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
@@ -109,8 +109,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;..\..\contrib\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -118,7 +118,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>__WINDOWS__;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;..\..\contrib\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -131,8 +131,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;..\..\contrib\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
@@ -140,7 +140,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>__WINDOWS__;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;..\..\contrib\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -155,8 +155,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;..\..\contrib\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugGpu|x64'">
@@ -164,7 +164,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>__WINDOWS__;DEBUG;DEBUG_GPU;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\contrib\freeglut\include;..\..\contrib\glew-2.2.0\include;..\..\contrib;..\..\contrib\Orochi;..\..;..\..\contrib\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <AdditionalOptions>/wd4244 /wd4305 /wd4018 /wd4996 %(AdditionalOptions)</AdditionalOptions>
@@ -173,8 +173,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>version.lib;hiprt0200164.lib;glew32.lib;freeglut.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\contrib\freeglut\lib\x64;..\..\contrib\glew-2.2.0\lib\Release\x64;..\..\hiprt\win;..\..\contrib\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -511,6 +511,106 @@
     <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-tuple.h" />
     <ClInclude Include="..\..\contrib\Orochi\contrib\gtest-1.6.0\gtest\internal\gtest-type-util.h" />
     <ClInclude Include="..\..\contrib\Orochi\contrib\hipew\include\hipew.h" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\AlResource.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Export.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\InputSoundFile.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Listener.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Music.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\OutputSoundFile.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Sound.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundBuffer.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundBufferRecorder.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileFactory.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileReader.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileWriter.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundRecorder.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundSource.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundStream.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Config.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\GpuPreference.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\BlendMode.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\CircleShape.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Color.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\ConvexShape.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Drawable.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Export.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Font.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glsl.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glyph.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Image.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\PrimitiveType.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Rect.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RectangleShape.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderStates.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderTarget.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderTexture.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderWindow.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Shader.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Shape.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Sprite.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Text.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Texture.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Transform.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Transformable.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Vertex.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\VertexArray.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\VertexBuffer.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\View.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Main.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Export.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Ftp.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Http.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\IpAddress.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Packet.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Socket.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\SocketHandle.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\SocketSelector.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\TcpListener.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\TcpSocket.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\UdpSocket.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\OpenGL.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Clock.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Err.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Export.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\FileInputStream.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\InputStream.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Lock.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\MemoryInputStream.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Mutex.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\NativeActivity.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\NonCopyable.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Sleep.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\String.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Thread.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocal.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocalPtr.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Time.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Utf.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector2.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector3.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Clipboard.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Context.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\ContextSettings.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Cursor.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Event.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Export.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\GlResource.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Joystick.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Keyboard.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Mouse.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Sensor.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Touch.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\VideoMode.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Vulkan.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Window.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowBase.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowHandle.hpp" />
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowStyle.hpp" />
     <ClInclude Include="..\..\contrib\stb_image.h" />
     <ClInclude Include="..\..\contrib\stb_image_write.h" />
     <ClInclude Include="..\..\contrib\tiny_gltf.h" />
@@ -563,6 +663,15 @@
     <None Include="..\..\contrib\Eigen\SuperLUSupport" />
     <None Include="..\..\contrib\Eigen\SVD" />
     <None Include="..\..\contrib\Eigen\UmfPackSupport" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileFactory.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glsl.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Rect.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\String.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Thread.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocalPtr.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Utf.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector2.inl" />
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector3.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

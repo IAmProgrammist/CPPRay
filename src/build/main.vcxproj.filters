@@ -1056,6 +1056,306 @@
     <ClInclude Include="..\..\contrib\Eigen\src\UmfPackSupport\UmfPackSupport.h">
       <Filter>libs\contrib\Eigen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\AlResource.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Export.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\InputSoundFile.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Listener.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Music.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\OutputSoundFile.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\Sound.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundBuffer.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundBufferRecorder.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileFactory.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileReader.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileWriter.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundRecorder.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundSource.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundStream.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\BlendMode.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\CircleShape.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Color.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\ConvexShape.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Drawable.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Export.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Font.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glsl.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glyph.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Image.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\PrimitiveType.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Rect.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RectangleShape.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderStates.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderTarget.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderTexture.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\RenderWindow.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Shader.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Shape.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Sprite.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Text.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Texture.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Transform.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Transformable.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Vertex.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\VertexArray.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\VertexBuffer.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\View.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Export.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Ftp.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Http.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\IpAddress.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Packet.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\Socket.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\SocketHandle.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\SocketSelector.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\TcpListener.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\TcpSocket.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network\UdpSocket.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Clock.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Err.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Export.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\FileInputStream.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\InputStream.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Lock.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\MemoryInputStream.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Mutex.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\NativeActivity.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\NonCopyable.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Sleep.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\String.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Thread.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocal.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocalPtr.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Time.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Utf.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector2.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector3.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Clipboard.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Context.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\ContextSettings.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Cursor.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Event.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Export.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\GlResource.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Joystick.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Keyboard.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Mouse.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Sensor.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Touch.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\VideoMode.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Vulkan.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\Window.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowBase.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowHandle.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window\WindowStyle.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Config.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\GpuPreference.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Main.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Network.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\OpenGL.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\System.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\SFML-2.6.1\include\SFML\Window.hpp">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">
@@ -1114,6 +1414,12 @@
     </Filter>
     <Filter Include="libs\contrib\Eigen">
       <UniqueIdentifier>{3b86d082-d4fa-4b8c-ac2e-f312f5eb9c2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\SFML-2.6.1">
+      <UniqueIdentifier>{d24bc8e0-f7d7-455e-9d0f-4d1a5ea2b28a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\contrib\SFML-2.6.1\SFML">
+      <UniqueIdentifier>{3a6ad443-6771-4fe9-a1dd-25585bc2d672}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1206,6 +1512,33 @@
     </None>
     <None Include="..\..\contrib\Eigen\Cholesky">
       <Filter>libs\contrib\Eigen</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Audio\SoundFileFactory.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Glsl.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\Graphics\Rect.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\String.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Thread.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\ThreadLocalPtr.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Utf.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector2.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
+    </None>
+    <None Include="..\..\contrib\SFML-2.6.1\include\SFML\System\Vector3.inl">
+      <Filter>libs\contrib\SFML-2.6.1\SFML</Filter>
     </None>
   </ItemGroup>
 </Project>
