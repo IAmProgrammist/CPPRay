@@ -44,8 +44,8 @@ class RenderEngine : public IRenderEngine {
 		float3* gpuDebug;
 		CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuDebug ), sizeof( float3 ) * 4 ) );
 		
-		Camera cam( make_float3( 7.35889, -6.92579, 4.95831 ), 
-			make_float3( 63.5593, 0, 46.6919 ), 39.6 );
+		Camera cam( make_float3( 7.35889, -6.92579, 0.968309 ), 
+			make_float3( 109.559, 0, 46.6919 ), 39.6 );
 		
 		//Camera cam( make_float3( 0, 0, 10), make_float3( 0, 0, 0), 24 );
 		//float3 vec	  = {0, 1, 1};
@@ -65,7 +65,6 @@ class RenderEngine : public IRenderEngine {
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
-		renderingMutex.unlock();
 
 		CHECK_ORO( oroMemcpyDtoH( debug, reinterpret_cast<oroDeviceptr>( gpuDebug ), sizeof( float3 ) * 4 ) );
 
@@ -74,11 +73,12 @@ class RenderEngine : public IRenderEngine {
 
 			bam = bam;
 		}
+		renderingMutex.unlock();
 	}
 };
 
 int			 timeee  = 0;
-int			 width = 1280, height = 720;
+int			 width = 100, height = 100;
 u8*			 data;
 RenderEngine renderEngine;
 
@@ -89,7 +89,7 @@ int main() {
 	renderEngine.run( data, timeee % 360 );
 
 	auto future1 = std::async( std::launch::async, [] {
-		// while ( true )
+		//while ( true )
 		{
 			renderEngine.run( data, timeee % 360 );
 		}
@@ -101,7 +101,9 @@ int main() {
 	while ( window.isOpen() ) {
 		sf::Event event;
 		while ( window.pollEvent( event ) ) {
-			if ( event.type == sf::Event::Closed ) window.close();
+			if ( event.type == sf::Event::Closed ) {
+				window.close();
+			}
 		}
 
 		sf::Image image;
@@ -110,6 +112,7 @@ int main() {
 		window.clear();
 
 		sf::Texture texture;
+		texture.setSmooth( true );
 		texture.loadFromImage( image );
 
 		sf::Sprite sprite;
