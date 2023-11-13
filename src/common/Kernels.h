@@ -116,7 +116,7 @@ extern "C" __global__ void SceneIntersectionKernel(
 		
 	baseColor = { 255, 255, 255, 255 };
 
-	float3 lIntensity = {0.0, 0.0, 0.0};
+	float3 lIntensity = { MIN_LIGHT, MIN_LIGHT, MIN_LIGHT };
 
 	float3 currentPoint = o + d * hit.t;
 	// Point lights
@@ -141,8 +141,8 @@ extern "C" __global__ void SceneIntersectionKernel(
 			( distance * distance );
 
 		// Dividing by 543.5141306588226 is converting to watts
-		lIntensity += pointLight.color * pointLight.intensity * attentuation * cos( -hitNormal, currentPoint - pointLight.o ) /
-					  543.5141306588226;
+		lIntensity += pointLight.color * pointLight.intensity * BRIGHTNESS * attentuation *
+					  cos( -hitNormal, currentPoint - pointLight.o );
 	}
 
 	// Directional lights
@@ -150,7 +150,7 @@ extern "C" __global__ void SceneIntersectionKernel(
 		auto dirLight = lights.dirLights[i];
 
 		hiprtRay lightRay;
-		lightRay.origin	   = currentPoint - 0.00001 * dirLight.d;
+		lightRay.origin	   = currentPoint - dirLight.d * 0.0001;
 		lightRay.direction = -dirLight.d;
 		
 		hiprtSceneTraversalClosest lightTC(
@@ -158,14 +158,21 @@ extern "C" __global__ void SceneIntersectionKernel(
 		hiprtHit lightHit = lightTC.getNextHit();
 
 		// Creating a shadow
-		if ( lightHit.hasHit() && lightHit.t > 0.001 ) continue;
+		if ( lightHit.hasHit() ) continue;
 
 		// Dividing by 683 is converting to watts
-		lIntensity = dirLight.color * dirLight.intensity * cos( -hitNormal, dirLight.d ) / 683;
+		// Probably gonna do something with brightness coefficient here
+		lIntensity += dirLight.color * dirLight.intensity * BRIGHTNESS * cos( -hitNormal, dirLight.d );
 	}
 
 	// Spot lights
 	for ( int i = 0; i < lights.spLightsAmount; i++ ) {
+		//debug, delete after use
+		//currentPoint = make_float3( 0, 3.37857f, 0.610976f );
+		//i			 = 2;
+		//if ( hit.instanceID != 2 ) break;
+		// debug, delete after use
+
 		auto spLight = lights.spLights[i];
 
 		hiprtRay lightRay;
@@ -198,22 +205,23 @@ extern "C" __global__ void SceneIntersectionKernel(
 				( spLight.innerConeAngle ) / ( spLight.innerConeAngle - spLight.outerConeAngle );
 		}
 
-		if ( i == 0 ) {
-			printf(
-				"%f %f %f\n%f %f %f\n%f\n",
-				-hitNormal.x,
-				-hitNormal.y,
-				-hitNormal.z,
-				lightRay.direction.x,
-				lightRay.direction.y,
-				lightRay.direction.z,
-				cos( lightRay.direction, -hitNormal ) );
-		}
-		// Dividing by 543.5141306588226 is converting to watts
-		lIntensity += k * spLight.color * spLight.intensity * cos( lightRay.direction, -hitNormal) * attentuation / 54.35141306588226;
-	}
+		/* printf(
+			"%f %f %f\n%f %f %f\n%f\n\n",
+			lightRay.direction.x,
+			lightRay.direction.y,
+			lightRay.direction.z,
+			-hitNormal.x,
+			-hitNormal.y,
+			-hitNormal.z,
+			cos( lightRay.direction, -hitNormal ) );*/
 
-	lIntensity = { max( MIN_LIGHT, lIntensity.x ), max( MIN_LIGHT, lIntensity.y ), max( MIN_LIGHT, lIntensity.z ) };
+		// Dividing by 543.5141306588226 is converting to watts
+		// multypliyng by cos acts weird for some reason. I may be stupid.
+
+		lIntensity += k * spLight.color *
+					  spLight.intensity * BRIGHTNESS * cos( lightRay.direction, -hitNormal) *
+					  attentuation;
+	}
 
 	pixels[pixelIndex * 4 + 0] = min(max( static_cast<unsigned long long>(baseColor.r) * lIntensity.x, 0 ), 255);
 	pixels[pixelIndex * 4 + 1] = min(max( static_cast<unsigned long long>(baseColor.g) * lIntensity.y, 0 ), 255);

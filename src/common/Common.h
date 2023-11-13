@@ -999,11 +999,8 @@ struct hipLights {
 	int				  spLightsAmount;
 };
 
-// How much kwatts we need to white light color to be at max brightness of (1, 1, 1)
-#define BRIGHTNESS 1
+// How much watts we need to white light color to be at max brightness of (1, 1, 1)
+#define BRIGHTNESS (1 / (40 * 54.35141306588226))
 
 // Perfectly black color doesnt exists, so minimal light intensity is 0.05 at all three chanels
-#define MIN_LIGHT 0.1
-
-// 500 km is surely enough for sun ig
-#define DIR_LIGHT_DISTANCE 10
+#define MIN_LIGHT 0.25
