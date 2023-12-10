@@ -890,50 +890,24 @@ struct Material {
 
 struct Camera {
   private:
-	float  positionX;
-	float  positionY;
-	float  positionZ;
-	float  rotationX;
-	float  rotationY;
-	float  rotationZ;
+	hiprtFrameMatrix t;
 	float  fov;
 
   public:
-	Camera(float3 position, float3 rotation, float fov) { 
-		this->positionX	 = position.x;
-		this->positionY	 = position.y;
-		this->positionZ	 = position.z;
-		this->rotationX	 = rotation.x;
-		this->rotationY	 = rotation.y;
-		this->rotationZ	 = rotation.z;
-		this->fov		 = fov;
+	Camera( hiprtFrameMatrix m, float fov ) {
+		this->t = m;
+		this->fov		= fov;
 	}
 
-	HOST_DEVICE INLINE float3 getPosition() { return make_float3( positionX, positionY, positionZ ); };
-
-	HOST_DEVICE INLINE float3 getRotation() { return make_float3( rotationX, rotationY, rotationZ ); };
+	HOST_DEVICE INLINE float3 getPosition() {
+		return make_float3( t.matrix[0][3], t.matrix[1][3], t.matrix[2][3] );
+	};
 
 	HOST_DEVICE float3 getRotatedVector( float3& vec ) {
-		float a = degToRad(rotationX);
-		float b = degToRad(rotationY);
-		float c = degToRad(rotationZ);
-
-		float a11 = cosf(b) * cosf(c);
-		float a12 = sinf(a) * sinf(b) * cosf(c) - cosf(a) * sinf(c);
-		float a13 = cosf(a) * sinf(b) * cosf(c) + sinf(a) * sinf(c);
-
-		float a21 = cosf(b) * sinf(c);
-		float a22 = sinf(a) * sinf(b) * sinf(c) + cosf(a) * cosf(c);
-		float a23 = cosf(a) * sinf(b) * sinf(c) - sinf(a) * cosf(c);
-
-		float a31 = -sinf(b);
-		float a32 = sinf(a) * cosf(b);
-		float a33 = cosf(a) * cosf(b);
-
 		return {
-			a11 * vec.x + a12 * vec.y + a13 * vec.z,
-			a21 * vec.x + a22 * vec.y + a23 * vec.z,
-			a31 * vec.x + a32 * vec.y + a33 * vec.z };
+			t.matrix[0][0] * vec.x + t.matrix[0][1] * vec.y + t.matrix[0][2] * vec.z,
+			t.matrix[1][0] * vec.x + t.matrix[1][1] * vec.y + t.matrix[1][2] * vec.z,
+			t.matrix[2][0] * vec.x + t.matrix[2][1] * vec.y + t.matrix[2][2] * vec.z };
 	};
 
 	HOST_DEVICE INLINE float getFov() { return fov; };
@@ -1004,3 +978,26 @@ struct hipLights {
 
 // Perfectly black color doesnt exists, so minimal light intensity is 0.05 at all three chanels
 #define MIN_LIGHT 0.25
+
+DEVICE INLINE float3 rotateVector( float3& vec, float xRot, float yRot, float zRot ) {
+	float a = degToRad( xRot );
+	float b = degToRad( yRot );
+	float c = degToRad( zRot );
+
+	float a11 = cosf( b ) * cosf( c );
+	float a12 = sinf( a ) * sinf( b ) * cosf( c ) - cosf( a ) * sinf( c );
+	float a13 = cosf( a ) * sinf( b ) * cosf( c ) + sinf( a ) * sinf( c );
+
+	float a21 = cosf( b ) * sinf( c );
+	float a22 = sinf( a ) * sinf( b ) * sinf( c ) + cosf( a ) * cosf( c );
+	float a23 = cosf( a ) * sinf( b ) * sinf( c ) - sinf( a ) * cosf( c );
+
+	float a31 = -sinf( b );
+	float a32 = sinf( a ) * cosf( b );
+	float a33 = cosf( a ) * cosf( b );
+
+	return {
+		a11 * vec.x + a12 * vec.y + a13 * vec.z,
+		a21 * vec.x + a22 * vec.y + a23 * vec.z,
+		a31 * vec.x + a32 * vec.y + a33 * vec.z };
+}

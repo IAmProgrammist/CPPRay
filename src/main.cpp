@@ -44,12 +44,6 @@ class RenderEngine : public IRenderEngine {
 		float3* gpuDebug;
 		CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuDebug ), sizeof( float3 ) * 4 ) );
 		
-		Camera cam( make_float3( 7.35889, -6.92579, 4.95831 ), 
-			make_float3( 63.5593, 0, 46.6919 ), 39.6 );
-		
-		//Camera cam( make_float3( 0, 0, 10), make_float3( 0, 0, 0), 24 );
-		//float3 vec	  = {0, 1, 1};
-		//vec			 = cam.getRotatedVector( vec );
 		void* args[] = {
 			&scene,
 			&pixels,
@@ -78,7 +72,8 @@ class RenderEngine : public IRenderEngine {
 };
 
 int			 timeee  = 0;
-int			 width = 1920, height = 1080;
+int			 width = 500, height = 500;
+int			 blockWidth = 100, blockHeight = 100;
 u8*			 data;
 RenderEngine renderEngine;
 

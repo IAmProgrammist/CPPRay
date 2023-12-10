@@ -64,6 +64,7 @@ class IRenderEngine
 	int						   textureAmount;
 	std::vector<hiprtGeometry> geometries;
 	hipLights				   gpuLights;
+	Camera					   cam = { {}, 45 };
 
 	PointLight* pointLights;
 	int			pointLightsAmount = 0;

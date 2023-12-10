@@ -30,41 +30,41 @@
 
 #define MANUAL 0
 
-void checkOro( oroError res, const char* file, int line ) {
-	if ( res != oroSuccess ) {
+void checkOro(oroError res, const char* file, int line) {
+	if (res != oroSuccess) {
 		const char* msg;
-		oroGetErrorString( res, &msg );
+		oroGetErrorString(res, &msg);
 		std::cerr << "Orochi error: '" << msg << "' on line " << line << " "
-				  << " in '" << file << "'." << std::endl;
-		exit( EXIT_FAILURE );
+			<< " in '" << file << "'." << std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
-void checkOrortc( orortcResult res, const char* file, int line ) {
-	if ( res != ORORTC_SUCCESS ) {
-		std::cerr << "ORORTC error: '" << orortcGetErrorString( res ) << "' [ " << res << " ] on line " << line << " "
-				  << " in '" << file << "'." << std::endl;
-		exit( EXIT_FAILURE );
+void checkOrortc(orortcResult res, const char* file, int line) {
+	if (res != ORORTC_SUCCESS) {
+		std::cerr << "ORORTC error: '" << orortcGetErrorString(res) << "' [ " << res << " ] on line " << line << " "
+			<< " in '" << file << "'." << std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
-void checkHiprt( hiprtError res, const char* file, int line ) {
-	if ( res != hiprtSuccess ) {
+void checkHiprt(hiprtError res, const char* file, int line) {
+	if (res != hiprtSuccess) {
 		std::cerr << "HIPRT error: '" << res << "' on line " << line << " "
-				  << " in '" << file << "'." << std::endl;
-		exit( EXIT_FAILURE );
+			<< " in '" << file << "'." << std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
-hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) {
+hiprtFrameMatrix inline operator*(hiprtFrameMatrix& a, hiprtFrameMatrix& b) {
 	Eigen::Matrix<float, 4, 4> aMat;
 	Eigen::Matrix<float, 4, 4> bMat;
 	aMat.setIdentity();
 	bMat.setIdentity();
-	for ( int x = 0; x < 4; x++ ) {
-		for ( int y = 0; y < 4; y++ ) {
-			aMat( x, y ) = a.matrix[x][y];
-			bMat( x, y ) = b.matrix[x][y];
+	for (int x = 0; x < 4; x++) {
+		for (int y = 0; y < 4; y++) {
+			aMat(x, y) = a.matrix[x][y];
+			bMat(x, y) = b.matrix[x][y];
 		}
 	}
 
@@ -73,9 +73,9 @@ hiprtFrameMatrix inline operator*( hiprtFrameMatrix& a, hiprtFrameMatrix& b ) {
 	result.time = a.time;
 
 	// This is bad, but i couldn't make std::copy work
-	for ( int x = 0; x < 3; x++ ) {
-		for ( int y = 0; y < 4; y++ ) {
-			result.matrix[x][y] = cross( x, y );
+	for (int x = 0; x < 3; x++) {
+		for (int y = 0; y < 4; y++) {
+			result.matrix[x][y] = cross(x, y);
 		}
 	}
 
@@ -87,6 +87,40 @@ struct Lights {
 	std::vector<PointLight>		  pointLights;
 	std::vector<SpotLight>		  spLights;
 };
+
+void decompSRTMatrix(hiprtFrameMatrix origin, float3& translation, float3& rotation, float3& scale) {
+	translation = { origin.matrix[0][3], origin.matrix[1][3], origin.matrix[2][3] };
+	scale = {
+		  len(make_float3(origin.matrix[0][0], origin.matrix[1][0], origin.matrix[2][0])),
+		  len(make_float3(origin.matrix[0][1], origin.matrix[1][1], origin.matrix[2][1])),
+		  len(make_float3(origin.matrix[0][2], origin.matrix[1][2], origin.matrix[2][2])) };
+	origin.matrix[0][0] /= scale.x;
+	origin.matrix[1][0] /= scale.x;
+	origin.matrix[2][0] /= scale.x;
+
+	origin.matrix[0][1] /= scale.y;
+	origin.matrix[1][1] /= scale.y;
+	origin.matrix[2][1] /= scale.y;
+
+	origin.matrix[0][2] /= scale.z;
+	origin.matrix[1][2] /= scale.z;
+	origin.matrix[2][2] /= scale.z;
+
+	Eigen::Matrix3f m;
+	m( 0, 0 ) = origin.matrix[0][0];
+	m( 0, 1 ) = origin.matrix[0][1];
+	m( 0, 2 ) = origin.matrix[0][1];
+	m( 1, 0 ) = origin.matrix[1][0];
+	m( 1, 1 ) = origin.matrix[1][1];
+	m( 1, 2 ) = origin.matrix[1][1];
+	m( 2, 0 ) = origin.matrix[2][0];
+	m( 2, 1 ) = origin.matrix[2][1];
+	m( 2, 2 ) = origin.matrix[2][2];
+
+	Eigen::Vector3f ea = m.eulerAngles( 0, 1, 2 );
+
+	rotation = { radToDeg( ea[0]), radToDeg( ea[1]), radToDeg(ea[2]) };
+}
 
 hiprtFrameMatrix getSRTMatrix( float3 translation, float4 rotation, float3 scale ) {
 	hiprtFrameMatrix res;
@@ -134,6 +168,7 @@ inline void loadNode(
 	std::vector<hiprtFrameMatrix>&	   frames,
 	std::vector<hiprtTransformHeader>& srtHeaders,
 	Lights&							   lights,
+	Camera&                            cam,
 	hiprtFrameMatrix				   parentTransform = getSRTMatrix( { 0, 0, 0 }, { 0, 0, 0, 0 }, { 1, 1, 1 } ) ) {
 
 	// Process transforms
@@ -341,10 +376,14 @@ inline void loadNode(
 		// No extensions provided.
 	}
 
-	// TODO: Process camera
+	int cameraIndex = node.camera;
+	if ( cameraIndex != -1 ) {
+		// TODO: add support for orthographic camera
+		cam = { localTransformations, radToDeg( model.cameras[cameraIndex].perspective.yfov ) };
+	}
 
 	for ( auto nodeChild : node.children ) {
-		loadNode( model.nodes[nodeChild], model, geomData, ctxt, geometries, frames, srtHeaders, lights, localTransformations );
+		loadNode( model.nodes[nodeChild], model, geomData, ctxt, geometries, frames, srtHeaders, lights, cam, localTransformations );
 	}
 }
 
@@ -374,7 +413,7 @@ void IRenderEngine::loadModel(
 	for ( auto nodeIndex : model.scenes[model.defaultScene].nodes ) {
 		auto rootNode = model.nodes[nodeIndex];
 
-		loadNode( rootNode, model, geomData, ctxt, geometries, frames, srtHeaders, lights );
+		loadNode( rootNode, model, geomData, ctxt, geometries, frames, srtHeaders, lights, this->cam );
 	}
 
 	CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuGeometry ), sizeof( Geometry ) * geomData.size() ) );
@@ -455,7 +494,7 @@ void IRenderEngine::init( int deviceIndex, int width, int height ) {
 
 	std::vector<hiprtFrameMatrix>	  frames;
 	std::vector<hiprtTransformHeader> srtHeaders;
-	loadModel( std::string( "testmodels/spl.gltf" ), ctxt, frames, srtHeaders );
+	loadModel( std::string( "testmodels/untitled.gltf" ), ctxt, frames, srtHeaders );
 
 	sceneInput.instanceCount			= geometries.size();
 	sceneInput.instanceMasks			= nullptr;
