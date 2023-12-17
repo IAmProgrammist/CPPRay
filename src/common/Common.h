@@ -871,21 +871,12 @@ struct u84 {
 	u8 r, g, b, a;
 };
 
-struct Texture {
-	u84* data;
-	int	 size;
-};
-
 struct Material {
-	int baseColorIndex;
-	int roughnessIndex;
-	int metalnessIndex;
-	int normalIndex;
-	int emissionIndex;
-
-	Material( int baseColor, int roughness, int metalness, int normal, int emission )
-		: baseColorIndex( baseColor ), roughnessIndex( roughness ), metalnessIndex( metalness ), normalIndex( normal ),
-		  emissionIndex( emission ){};
+	float baseColorR;
+	float baseColorG;
+	float baseColorB;
+	float metallic;
+	float roughness;
 };
 
 struct Camera {
@@ -974,10 +965,12 @@ struct hipLights {
 };
 
 // How much watts we need to white light color to be at max brightness of (1, 1, 1)
-#define BRIGHTNESS (1 / (40 * 54.35141306588226))
+#define BRIGHTNESS (1 / (400.0 ))
 
 // Perfectly black color doesnt exists, so minimal light intensity is 0.05 at all three chanels
-#define MIN_LIGHT 0.25
+#define MIN_LIGHT 0.15
+
+#define BACKGROUND_COLOR { 181, 227, 255, 255 }
 
 DEVICE INLINE float3 rotateVector( float3& vec, float xRot, float yRot, float zRot ) {
 	float a = degToRad( xRot );

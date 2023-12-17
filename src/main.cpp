@@ -37,61 +37,38 @@
 
 class RenderEngine : public IRenderEngine {
   public:
-	void run( u8* data, int time ) {
-		renderingMutex.lock();
-
-		float3* debug = (float3*)malloc( sizeof( float3 ) * 4 );
-		float3* gpuDebug;
-		CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &gpuDebug ), sizeof( float3 ) * 4 ) );
-		
+	void run( u8* data ) {
 		void* args[] = {
 			&scene,
 			&pixels,
 			&m_res,
 			&gpuGeometry,
-			&textures,
-			&materials,
-			&materialIndices,
+			&gpuMaterials,
 			&gpuLights,
-			&cam,
-			&time,
-			&gpuDebug };
+			&cam};
 		launchKernel( func, m_res.x, m_res.y, args );
 
 		CHECK_ORO( oroMemcpyDtoH( data, reinterpret_cast<oroDeviceptr>( pixels ), m_res.x * m_res.y * 4 ) );
-
-		CHECK_ORO( oroMemcpyDtoH( debug, reinterpret_cast<oroDeviceptr>( gpuDebug ), sizeof( float3 ) * 4 ) );
-
-		for ( int i = 0; i < 4; i++ ) {
-			float3 bam = debug[i];
-
-			bam = bam;
-		}
-		renderingMutex.unlock();
 	}
 };
 
-int			 timeee  = 0;
-int			 width = 500, height = 500;
-int			 blockWidth = 100, blockHeight = 100;
+int			 width, height;
 u8*			 data;
 RenderEngine renderEngine;
 
 
-int main() {
+int main( int argc, char* argv[] ) {
+	width = std::stoi( argv[2] );
+	height = std::stoi( argv[3] );
+
 	data = (u8*)malloc( width * height * 4 );
-	renderEngine.init( 0, width, height );
-	renderEngine.run( data, timeee % 360 );
+	renderEngine.init( 0, width, height, argv[1] );
+	renderEngine.run( data );
 
-	auto future1 = std::async( std::launch::async, [] {
-		//while ( true )
-		{
-			renderEngine.run( data, timeee % 360 );
-		}
-	} );
+	sf::ContextSettings settings;
+	settings.antialiasingLevel = 8.0;
 
-
-	sf::RenderWindow window( sf::VideoMode( width, height ), "CPPRay" );
+	sf::RenderWindow window( sf::VideoMode( width, height ), "CPPRay", sf::Style::Close, settings );
 
 	while ( window.isOpen() ) {
 		sf::Event event;

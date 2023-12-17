@@ -55,14 +55,10 @@ class IRenderEngine
 	hiprtScene				   scene;
 	hiprtContext			   ctxt;
 	oroFunction				   func;
-	float					   spin = 0;
 	hiprtBuildOptions		   options;
-	std::mutex				   renderingMutex;
-	Texture*				   textures;
-	Material*				   materials;
-	int*					   materialIndices;
 	int						   textureAmount;
 	std::vector<hiprtGeometry> geometries;
+	Material*				   gpuMaterials;
 	hipLights				   gpuLights;
 	Camera					   cam = { {}, 45 };
 
@@ -77,37 +73,17 @@ class IRenderEngine
 	{
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( sceneInput.instanceGeometries ) ) );
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( sceneInput.instanceFrames ) ) );
-		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( textures ) ) );
-		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( materials ) ) );
-		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( materialIndices) ) );
-		//CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.triangleIndices ) ) );
-		//CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( mesh.vertices ) ) );
+		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( gpuMaterials ) ) );
 		CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( pixels ) ) );
 
-		// Insert missing code here
-
 		CHECK_HIPRT( hiprtDestroyScene( ctxt, scene ) );
-		//CHECK_HIPRT( hiprtDestroyGeometry( ctxt, geom ) );
 		CHECK_HIPRT( hiprtDestroyContext( ctxt ) );
 	}
-	void init( int deviceIndex = 0, int width = 800, int height = 600 );
+	void init( int deviceIndex, int width, int height, char* path );
 	// Experimental and not working! 
 	void onResize( int width, int height );
 
-	Texture createTexture( hiprtContext, u84 color )
-	{
-		Texture texture;
-		texture.size = 1;
-		CHECK_ORO( oroMalloc( reinterpret_cast<oroDeviceptr*>( &texture.data ), sizeof( u84 ) * texture.size * texture.size ) );
-		CHECK_ORO( oroMemcpyHtoD( reinterpret_cast<oroDeviceptr>( texture.data ), &color, sizeof( u84 ) ) );
-
-		return texture;
-	};
-
-	void deleteTexture( Texture texture ) { CHECK_ORO( oroFree( reinterpret_cast<oroDeviceptr>( texture.data ) ) ); };
-
-
-	virtual void run( u8* data, int time ) = 0;
+	virtual void run( u8* data ) = 0;
 
 	void loadModel(
 		std::string&					   path,

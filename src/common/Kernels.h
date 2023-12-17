@@ -1,24 +1,3 @@
-//
-// Copyright (c) 2021-2023 Advanced Micro Devices, Inc. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
 #include <common/Common.h>
 #include <hiprt/hiprt_device.h>
 #include <hiprt/hiprt_vec.h>
@@ -31,167 +10,60 @@
 #define SHARED_STACK_SIZE 16
 #endif
 
-__device__ u32 lcg( u32& seed ) {
-	constexpr u32 LCG_A = 1103515245u;
-	constexpr u32 LCG_C = 12345u;
-	constexpr u32 LCG_M = 0x00FFFFFFu;
-	seed				= ( LCG_A * seed + LCG_C );
-	return seed & LCG_M;
-}
-
-__device__ float randf( u32& seed ) { return ( static_cast<float>( lcg( seed ) ) / static_cast<float>( 0x01000000 ) ); }
-
 constexpr float Pi	  = 3.14159265358979323846f;
 constexpr float TwoPi = 2.0f * Pi;
 
-__device__ u84 getAt( hiprtFloat2& uv, Texture& texture ) {
-	// TODO: �������� �������� ������� ������� �� �������� ����������.
-	hiprtInt2 rootIndex = {
-		( (int)( uv.x * texture.size ) ) % texture.size, ( (int)( ( 1 - uv.y ) * texture.size ) ) % texture.size };
-	return texture.data[rootIndex.x + rootIndex.y * texture.size];
+// GGX/Trowbridge-Reitz Normal Distribution Function
+__device__ inline float D(float& alpha, float3& N, float3 &H) { 
+	float numerator = alpha * alpha;
+
+	float NdotH = max( dot( N, H ), 0 );
+	float denominator = Pi * powf( powf( NdotH, 2 ) * ( powf( alpha, 2 ) - 1 ) + 1, 2 );
+	denominator		  = max( denominator, 0.000001 );
+
+	return numerator / denominator;
 }
 
-__device__ hiprtFloat3 getLIntensity(
-	int objectInstanceID, int objectPrimID, float3 point, float3 normal, int bounces, int samples, hipLights lights, 
-	hiprtScene scene,
-	float	   ft,
-	Geometry*  geometry,
-	u32		   seed ) {
-	u84	   baseColor  = { 255, 255, 255, 255 };
-	hiprtFloat3 lIntensity = { 0, 0, 0 };
+__device__ inline float G1( float &alpha, float3 &N, float3& X ) { 
+	float numerator = max( dot( N, X ), 0 );
 
-	// Direct lighting
-	
-	// Point lights
-	for ( int i = 0; i < lights.pointLightsAmount; i++ ) {
-		auto pointLight = lights.pointLights[i];
+	float k = alpha / 2;
+	float denominator = numerator * ( 1.0 - k ) + k;
+	denominator		  = max( denominator, 0.000001 );
 
-		hiprtRay lightRay;
-		lightRay.origin	   = pointLight.o;
-		lightRay.direction = point - pointLight.o;
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
-		hiprtHit lightHit = lightTC.getNextHit();
-
-		// Creating a shadow
-		if ( lightHit.instanceID != objectInstanceID || lightHit.primID != objectPrimID ) continue;
-
-		float distance	   = len( point - pointLight.o );
-		float attentuation = max( min( 1 - ( distance / pointLight.range ) * ( distance / pointLight.range ) *
-											   ( distance / pointLight.range ) * ( distance / pointLight.range ),
-									   1 ),
-								  0 ) /
-							 ( distance * distance );
-
-		lIntensity +=
-			pointLight.color * pointLight.intensity * BRIGHTNESS * attentuation * cos( -normal, point - pointLight.o );
-	}
-
-	// Directional lights
-	for ( int i = 0; i < lights.dirLightsAmount; i++ ) {
-		auto dirLight = lights.dirLights[i];
-
-		hiprtRay lightRay;
-		lightRay.origin	   = point - dirLight.d * 0.0001;
-		lightRay.direction = -dirLight.d;
-
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
-		hiprtHit lightHit = lightTC.getNextHit();
-
-		// Creating a shadow
-		if ( lightHit.hasHit() ) continue;
-
-		lIntensity += dirLight.color * dirLight.intensity * BRIGHTNESS * cos( -normal, dirLight.d );
-	}
-
-	// Spot lights
-	for ( int i = 0; i < lights.spLightsAmount; i++ ) {
-		auto spLight = lights.spLights[i];
-
-		hiprtRay lightRay;
-		lightRay.origin	   = spLight.o;
-		lightRay.direction = point - spLight.o;
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
-		hiprtHit lightHit = lightTC.getNextHit();
-
-		// Creating a shadow
-		if ( lightHit.instanceID != objectInstanceID || lightHit.primID != objectPrimID ) continue;
-
-		float distance	   = len( point - spLight.o );
-		float attentuation = max( min( 1 - ( distance / spLight.range ) * ( distance / spLight.range ) *
-											   ( distance / spLight.range ) * ( distance / spLight.range ),
-									   1 ),
-								  0 ) /
-							 ( distance * distance );
-
-		float angle = acosf( cos( lightRay.direction, spLight.d ) );
-
-		float k;
-		if ( angle < spLight.innerConeAngle ) {
-			k = 1;
-		} else if ( angle > spLight.outerConeAngle ) {
-			k = 0;
-		} else {
-			k = ( angle ) / ( spLight.innerConeAngle - spLight.outerConeAngle ) + 1 -
-				( spLight.innerConeAngle ) / ( spLight.innerConeAngle - spLight.outerConeAngle );
-		}
-
-		lIntensity += k * spLight.color * spLight.intensity * BRIGHTNESS * cos( lightRay.direction, -normal ) * attentuation;
-	}
-
-	// Indirect lighting will be ignored
-	/* if ( bounces == 0 || samples == 0 )
-		return lIntensity;
-
-	float3 colorsSum = { 0, 0, 0 };
-	for ( int i = 0; i < samples; i++ ) {
-		// TODO: replace 
-		float coneAngle = 2 * Pi;
-
-		seed             = lcg( seed );
-		float xRot		 = coneAngle * randf( seed ) - coneAngle / 2;
-		seed			 = lcg( seed );
-		float yRot		 = coneAngle * randf( seed ) - coneAngle / 2;
-		seed			 = lcg( seed );
-		float  zRot		 = coneAngle * randf( seed ) - coneAngle / 2;
-		float3 d		 = rotateVector( normal, xRot, yRot, zRot );
-
-		hiprtRay dotRay;
-		dotRay.origin    = point;
-		dotRay.direction = d;
-		hiprtSceneTraversalClosest dotRayTr( scene, dotRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
-		hiprtHit dotRayHit = dotRayTr.getNextHit();
-
-		if ( !dotRayHit.hasHit() ) continue;
-
-		hiprtFloat3 N1 = geometry[dotRayHit.instanceID].normals[geometry[dotRayHit.instanceID].indices[dotRayHit.primID].x];
-		hiprtFloat3 N2 = geometry[dotRayHit.instanceID].normals[geometry[dotRayHit.instanceID].indices[dotRayHit.primID].y];
-		hiprtFloat3 N3 = geometry[dotRayHit.instanceID].normals[geometry[dotRayHit.instanceID].indices[dotRayHit.primID].z];
-		float		u		  = dotRayHit.uv.x;
-		float		v		  = dotRayHit.uv.y;
-		float		w		  = 1 - dotRayHit.uv.x - dotRayHit.uv.y;
-		hiprtFloat3 hitNormal = normalize( w * N1 + u * N2 + v * N3 );
-
-		lIntensity += getLIntensity( dotRayHit.instanceID, dotRayHit.primID, dotRay.origin + dotRay.direction * dotRayHit.t, hitNormal, bounces - 1, samples, lights, scene, ft, geometry, seed) / samples;
-	}*/
-
-	return lIntensity;
+	return numerator / denominator;
 }
 
-extern "C" __global__ void SceneIntersectionKernel(
+__device__ float inline G( float& alpha, float3& N, float3& V, float3& L ) { 
+	return G1( alpha, N, V ) * G1( alpha, N, L ); 
+}
+
+__device__ inline float3 F( float3& F0, float3& V, float3& H ) { return F0 + ( 1 - F0 ) * powf( 1 - max( dot( V, H ), 0 ), 5 ); }
+
+__device__ inline float3 PBR(float3& F0, float3& N, float3& V, float3& H, float3& L, float3& albedoMesh, Material& material, float& alpha) {
+	float3 Ks = F( F0, V, H );
+	float3 Kd = ( 1 - Ks ) * ( 1 - material.metallic );
+
+	float3 lambert = albedoMesh / Pi;
+
+	float3 cookTorranceNumerator   = D( alpha, N, H ) * G( alpha, N, V, L ) * Ks;
+	float  cookTorranceDenominator = 4 * max( dot( V, N ), 0 ) * max( dot( L, N ), 0 );
+	cookTorranceDenominator		   = max( cookTorranceDenominator, 0.000001 );
+	float3 cookTorrance			   = cookTorranceNumerator / cookTorranceDenominator;
+
+	float3 BRDF = Kd * lambert + cookTorrance;
+
+	return BRDF;
+}
+
+extern "C" __global__ void mainKernel(
 	hiprtScene scene,
 	u8*		   pixels,
 	int2	   res,
 	Geometry*  geometry,
-	Texture*   textures,
 	Material*  materials,
-	int*	   materialIndices,
 	hipLights  lights,
-	Camera	   cam,
-	int		   frameTime,
-	float3* debug) {
+	Camera	   cam) {
 	const int x = blockIdx.x * blockDim.x + threadIdx.x;
 	const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -211,34 +83,31 @@ extern "C" __global__ void SceneIntersectionKernel(
 		
 		d = cam.getRotatedVector( d );
 	} else if ( camType == CAMERA_TYPE_ORTOGRAPHIC ) {
+		// TODO: implement orographic camera
 		o = {
 			cam.getPosition().x + ( x / static_cast<float>( res.x ) ) * sw - sw / 2,
 			cam.getPosition().y - ( ( y / static_cast<float>( res.y ) ) * sh - sh / 2 ),
 			cam.getPosition().z };
 		d = { 0.0f, 0.0f, -1 };
-		// TODO: �������� ���������� �������
-		//auto phi = cam.getRotation().w;
-		//auto k	 = make_hiprtFloat3( cam.getRotation().x, cam.getRotation().y, cam.getRotation().z );
-		//d		 = d * cos( phi ) + cross( k, d ) * sin( phi ) + k * ( k * d ) * ( 1 - cos( phi ) );
 	}
 
 	hiprtRay ray;
 	ray.origin	  = o;
 	ray.direction = d;
 
-	float					   ft = frameTime;
-	hiprtSceneTraversalClosest tr( scene, ray, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
+	hiprtSceneTraversalClosest tr( scene, ray );
 	hiprtHit				   hit = tr.getNextHit();
 
 	int pixelIndex = x + y * res.x;
 	float cosAngle = 1;
-	u84 baseColor;
+	u84	  baseColor	 = {255, 255, 255, 255};
 
 	if ( !hit.hasHit() ) {
-		pixels[pixelIndex * 4 + 0] = 0;
-		pixels[pixelIndex * 4 + 1] = 0;
-		pixels[pixelIndex * 4 + 2] = 0;
-		pixels[pixelIndex * 4 + 3] = 255;
+		u84 bg					   = BACKGROUND_COLOR;
+		pixels[pixelIndex * 4 + 0] = bg.r;
+		pixels[pixelIndex * 4 + 1] = bg.g;
+		pixels[pixelIndex * 4 + 2] = bg.b;
+		pixels[pixelIndex * 4 + 3] = bg.a;
 
 		return;
 	}
@@ -249,42 +118,52 @@ extern "C" __global__ void SceneIntersectionKernel(
 	float		u		  = hit.uv.x;
 	float		v		  = hit.uv.y;
 	float		w		  = 1 - hit.uv.x - hit.uv.y;
-	hiprtFloat3 hitNormal = normalize(w * N1 + u * N2 + v * N3);
-	//baseColor = getAt( hit.uv, textures[materials[materialIndices[hit.instanceID]].baseColorIndex] );
-	cosAngle				   = cos( hitNormal, d );
-		
-	baseColor = { 255, 255, 255, 255 };
+	hiprtFloat3 normal = normalize(w * N1 + u * N2 + v * N3);
+	auto material         = materials[hit.instanceID];
+	float3		albedoMesh	   = { material.baseColorR, material.baseColorG, material.baseColorB };
+	cosAngle				   = cos( normal, d );
 
-	float3 lIntensity =
-		make_hiprtFloat3( MIN_LIGHT, MIN_LIGHT, MIN_LIGHT ) +
-		getLIntensity(
-			hit.instanceID, hit.primID, hit.t * ray.direction + ray.origin, hitNormal, 4, 10, lights, scene, ft, geometry, x + y * res.x );
+	hiprtFloat3 lIntensity		 = { MIN_LIGHT, MIN_LIGHT, MIN_LIGHT };
+	float3		fragmentPosition	   = hit.t * ray.direction + ray.origin;
+	float3		cameraPosition	 = cam.getPosition();
 
-	/* float3 currentPoint = o + d * hit.t;
+	float3 F0	 = { 0.5, 0.5, 0.5 };
+	float3 N = normalize( normal );
+	float3 V = normalize( cameraPosition - fragmentPosition );
+	float  alpha = material.roughness * material.roughness;
+
+	// Direct lighting
+
 	// Point lights
 	for ( int i = 0; i < lights.pointLightsAmount; i++ ) {
-		auto  pointLight = lights.pointLights[i];
+		auto pointLight = lights.pointLights[i];
 
 		hiprtRay lightRay;
-		lightRay.origin = pointLight.o;
-		lightRay.direction = currentPoint - pointLight.o;
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
+		lightRay.origin	   = pointLight.o;
+		lightRay.direction = fragmentPosition - pointLight.o;
+		hiprtSceneTraversalClosest lightTC(scene, lightRay );
 		hiprtHit lightHit = lightTC.getNextHit();
 
 		// Creating a shadow
 		if ( lightHit.instanceID != hit.instanceID || lightHit.primID != hit.primID ) continue;
 
-		float distance = len( currentPoint - pointLight.o );
-		float attentuation =
-			max( min( 1 - ( distance / pointLight.range ) * ( distance / pointLight.range ) * ( distance / pointLight.range ) * (distance / pointLight.range),
-					  1 ),
-				 0 ) /
-			( distance * distance );
+		float distance	   = len( fragmentPosition - pointLight.o );
+		float attentuation = max( min( 1 - ( distance / pointLight.range ) * ( distance / pointLight.range ) *
+											   ( distance / pointLight.range ) * ( distance / pointLight.range ),
+									   1 ),
+								  0 ) /
+							 ( distance * distance );
 
-		// Dividing by 543.5141306588226 is converting to watts
-		lIntensity += pointLight.color * pointLight.intensity * BRIGHTNESS * attentuation *
-					  cos( -hitNormal, currentPoint - pointLight.o );
+		float3 L = normalize( lightRay.direction );
+		float3 H = normalize( V + L );
+
+		
+		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * ( pointLight.color * pointLight.intensity * attentuation ) *
+					  BRIGHTNESS *
+					  cos( -normal, fragmentPosition - pointLight.o );
+
+		//lIntensity += pointLight.color * pointLight.intensity * BRIGHTNESS * attentuation *
+		//			  cos( -normal, fragmentPosition - pointLight.o );
 	}
 
 	// Directional lights
@@ -292,51 +171,44 @@ extern "C" __global__ void SceneIntersectionKernel(
 		auto dirLight = lights.dirLights[i];
 
 		hiprtRay lightRay;
-		lightRay.origin	   = currentPoint - dirLight.d * 0.0001;
+		lightRay.origin	   = fragmentPosition - dirLight.d * 0.0001;
 		lightRay.direction = -dirLight.d;
-		
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
+
+		hiprtSceneTraversalClosest lightTC(	scene, lightRay );
 		hiprtHit lightHit = lightTC.getNextHit();
 
 		// Creating a shadow
 		if ( lightHit.hasHit() ) continue;
 
-		// Dividing by 683 is converting to watts
-		// Probably gonna do something with brightness coefficient here
-		lIntensity += dirLight.color * dirLight.intensity * BRIGHTNESS * cos( -hitNormal, dirLight.d );
+		float3 L = normalize( lightRay.direction );
+		float3 H = normalize( V + L );
+
+		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * dirLight.color * dirLight.intensity * BRIGHTNESS *
+					  cos( -normal, dirLight.d );
 	}
 
 	// Spot lights
 	for ( int i = 0; i < lights.spLightsAmount; i++ ) {
-		//debug, delete after use
-		//currentPoint = make_float3( 0, 3.37857f, 0.610976f );
-		//i			 = 2;
-		//if ( hit.instanceID != 2 ) break;
-		// debug, delete after use
-
 		auto spLight = lights.spLights[i];
 
 		hiprtRay lightRay;
 		lightRay.origin	   = spLight.o;
-		lightRay.direction = currentPoint - spLight.o;
-		hiprtSceneTraversalClosest lightTC(
-			scene, lightRay, hiprtFullRayMask, hiprtTraversalHintDefault, nullptr, nullptr, 0, ft );
+		lightRay.direction = fragmentPosition - spLight.o;
+		hiprtSceneTraversalClosest lightTC(	scene, lightRay  );
 		hiprtHit lightHit = lightTC.getNextHit();
 
 		// Creating a shadow
 		if ( lightHit.instanceID != hit.instanceID || lightHit.primID != hit.primID ) continue;
 
-		float distance	   = len( currentPoint - spLight.o );
+		float distance	   = len( fragmentPosition - spLight.o );
 		float attentuation = max( min( 1 - ( distance / spLight.range ) * ( distance / spLight.range ) *
 											   ( distance / spLight.range ) * ( distance / spLight.range ),
 									   1 ),
 								  0 ) /
 							 ( distance * distance );
-		
+
 		float angle = acosf( cos( lightRay.direction, spLight.d ) );
 
-		
 		float k;
 		if ( angle < spLight.innerConeAngle ) {
 			k = 1;
@@ -347,31 +219,15 @@ extern "C" __global__ void SceneIntersectionKernel(
 				( spLight.innerConeAngle ) / ( spLight.innerConeAngle - spLight.outerConeAngle );
 		}
 
-		/* printf(
-			"%f %f %f\n%f %f %f\n%f\n\n",
-			lightRay.direction.x,
-			lightRay.direction.y,
-			lightRay.direction.z,
-			-hitNormal.x,
-			-hitNormal.y,
-			-hitNormal.z,
-			cos( lightRay.direction, -hitNormal ) );
+		float3 L = normalize( lightRay.direction );
+		float3 H = normalize( V + L );
 
-		// Dividing by 543.5141306588226 is converting to watts
-		// multypliyng by cos acts weird for some reason. I may be stupid.
+		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * k * spLight.color * spLight.intensity * BRIGHTNESS *
+					  cos( lightRay.direction, -normal ) * attentuation;
+	}
 
-		lIntensity += k * spLight.color *
-					  spLight.intensity * BRIGHTNESS * cos( lightRay.direction, -hitNormal) *
-					  attentuation;
-	}*/
-
-	pixels[pixelIndex * 4 + 0] = min(max( static_cast<unsigned long long>(baseColor.r) * lIntensity.x, 0 ), 255);
-	pixels[pixelIndex * 4 + 1] = min(max( static_cast<unsigned long long>(baseColor.g) * lIntensity.y, 0 ), 255);
-	pixels[pixelIndex * 4 + 2] = min(max( static_cast<unsigned long long>(baseColor.b) * lIntensity.z, 0 ), 255);
-	pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
-
-	//pixels[pixelIndex * 4 + 0] = max( baseColor.r * hitNormal.x, 0 );
-	//pixels[pixelIndex * 4 + 1] = max( baseColor.g * hitNormal.y, 0 );
-	//pixels[pixelIndex * 4 + 2] = max( baseColor.b * hitNormal.z, 0 );
-	//pixels[pixelIndex * 4 + 3] = max( baseColor.a, 0 );
+	pixels[pixelIndex * 4 + 0] = min(max( lIntensity.x * 255, 0 ), 255);
+	pixels[pixelIndex * 4 + 1] = min( max( lIntensity.y * 255, 0 ), 255 );
+	pixels[pixelIndex * 4 + 2] = min( max( lIntensity.z * 255, 0 ), 255 );
+	pixels[pixelIndex * 4 + 3] = 255;
 }
