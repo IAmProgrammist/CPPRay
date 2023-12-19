@@ -358,7 +358,7 @@ void loadNode(
 	int cameraIndex = node.camera;
 	if ( cameraIndex != -1 ) {
 		// TODO: add support for orthographic camera
-		cam = { localTransformations, radToDeg( model.cameras[cameraIndex].perspective.yfov ) };
+		cam = { localTransformations, radToDeg( model.cameras[cameraIndex].perspective.yfov * 2 ) };
 	}
 
 	for ( auto nodeChild : node.children ) {
