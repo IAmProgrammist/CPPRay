@@ -158,12 +158,16 @@ extern "C" __global__ void mainKernel(
 		float3 H = normalize( V + L );
 
 		
-		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * ( pointLight.color * pointLight.intensity * attentuation ) *
+		auto localIntensity = PBR( F0, N, V, H, L, albedoMesh, material, alpha ) *
+							   ( pointLight.color * pointLight.intensity * attentuation ) *
 					  BRIGHTNESS *
 					  cos( -normal, fragmentPosition - pointLight.o );
 
-		//lIntensity += pointLight.color * pointLight.intensity * BRIGHTNESS * attentuation *
-		//			  cos( -normal, fragmentPosition - pointLight.o );
+		if ( localIntensity.x < 0 ) localIntensity.x = 0;
+		if ( localIntensity.y < 0 ) localIntensity.y = 0;
+		if ( localIntensity.z < 0 ) localIntensity.z = 0;
+
+		lIntensity += localIntensity;
 	}
 
 	// Directional lights
@@ -183,8 +187,15 @@ extern "C" __global__ void mainKernel(
 		float3 L = normalize( lightRay.direction );
 		float3 H = normalize( V + L );
 
-		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * dirLight.color * dirLight.intensity * BRIGHTNESS *
+		auto localIntensity = PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * dirLight.color * dirLight.intensity *
+								 BRIGHTNESS *
 					  cos( -normal, dirLight.d );
+
+		if ( localIntensity.x < 0 ) localIntensity.x = 0;
+		if ( localIntensity.y < 0 ) localIntensity.y = 0;
+		if ( localIntensity.z < 0 ) localIntensity.z = 0;
+
+		lIntensity += localIntensity;
 	}
 
 	// Spot lights
@@ -222,8 +233,14 @@ extern "C" __global__ void mainKernel(
 		float3 L = normalize( lightRay.direction );
 		float3 H = normalize( V + L );
 
-		lIntensity += PBR( F0, N, V, H, L, albedoMesh, material, alpha ) * k * spLight.color * spLight.intensity * BRIGHTNESS *
-					  cos( lightRay.direction, -normal ) * attentuation;
+		auto localIntensity = PBR( F0, N, V, H, L, albedoMesh, material, alpha )*  k * spLight.color * spLight.intensity *
+					  BRIGHTNESS *
+					  dot( lightRay.direction, -normal ) * attentuation;
+		if ( localIntensity.x < 0 ) localIntensity.x = 0;
+		if ( localIntensity.y < 0 ) localIntensity.y = 0;
+		if ( localIntensity.z < 0 ) localIntensity.z = 0;
+
+		lIntensity += localIntensity;
 	}
 
 	pixels[pixelIndex * 4 + 0] = min(max( lIntensity.x * 255, 0 ), 255);

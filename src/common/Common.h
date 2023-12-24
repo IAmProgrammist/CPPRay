@@ -419,6 +419,13 @@ HOST_DEVICE INLINE int3 max( const int c, const int3& a )
 	return make_int3( x, y, z );
 }
 
+HOST_DEVICE INLINE float3 max( const float3& a, const float3& b ) {
+	int x = a.x > b.x ? a.x : b.x;
+	int y = a.y > b.y ? a.y : b.y;
+	int z = a.z > b.z ? a.z : b.z;
+	return make_float3( x, y, z );
+}
+
 HOST_DEVICE INLINE int3 min( const int3& a, const int3& b )
 {
 	int x = RT_MIN( a.x, b.x );
@@ -965,10 +972,10 @@ struct hipLights {
 };
 
 // How much watts we need to white light color to be at max brightness of (1, 1, 1)
-#define BRIGHTNESS (1 / (400.0 ))
+#define BRIGHTNESS (1 / (100.0 ))
 
 // Perfectly black color doesnt exists, so minimal light intensity is 0.05 at all three chanels
-#define MIN_LIGHT 0.15
+#define MIN_LIGHT 0.1
 
 #define BACKGROUND_COLOR { 181, 227, 255, 255 }
 

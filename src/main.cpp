@@ -65,10 +65,7 @@ int main( int argc, char* argv[] ) {
 	renderEngine.init( 0, width, height, argv[1] );
 	renderEngine.run( data );
 
-	sf::ContextSettings settings;
-	settings.antialiasingLevel = 8.0;
-
-	sf::RenderWindow window( sf::VideoMode( width, height ), "CPPRay", sf::Style::Close, settings );
+	sf::RenderWindow window( sf::VideoMode( width, height ), "CPPRay", sf::Style::Close );
 
 	while ( window.isOpen() ) {
 		sf::Event event;
